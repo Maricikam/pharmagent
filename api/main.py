@@ -76,7 +76,7 @@ def demo():
                     {"name": "Aspirin", "dose": "75mg", "frequency": "Once daily"},
                     {"name": "Atorvastatin", "dose": "40mg", "frequency": "Once nightly"},
                 ],
-                "new_medication": "Ibuprofen 400mg",
+                "new_medication_name": "Ibuprofen 400mg",
                 "interaction_report": {
                     "risk_level": "HIGH",
                     "interactions_detected": [
@@ -170,7 +170,7 @@ def expiring_stock(days: int = 30):
 
 class InteractionCheckRequest(BaseModel):
     nhs_number: str
-    new_medication: str
+    new_medication_name: str
 
 
 class EngagementRequest(BaseModel):
@@ -207,7 +207,7 @@ def interaction_check(req: InteractionCheckRequest):
                     {"name": p["medication"], "dose": p["dosage"], "frequency": p["frequency"]}
                     for p in prescriptions
                 ],
-                "new_medication": req.new_medication,
+                "new_medication_name": req.new_medication_name,
                 "interaction_report": {
                     "risk_level": "HIGH" if "CRITICAL" in result or "DO NOT" in result else "MODERATE" if "REVIEW" in result else "LOW",
                     "interactions_detected": [],
