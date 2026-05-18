@@ -128,7 +128,7 @@ def patient_lookup(nhs_number: str):
                 "nhs_number": nhs_number,
                 "dob": patient["date_of_birth"],
                 "active_medications": [
-                    {"name": p["medication_name"], "dose": p["dosage"], "frequency": p["frequency"]}
+                    {"name": p["medication"], "dose": p["dosage"], "frequency": p["frequency"]}
                     for p in prescriptions
                 ],
             }
@@ -142,8 +142,8 @@ def patient_lookup(nhs_number: str):
 @app.get("/stock/low", tags=["Stock"])
 def low_stock():
     try:
-        from tools.pharmacy_tools import get_low_stock
-        items = get_low_stock()
+        from tools.pharmacy_tools import get_low_stock_items
+        items = get_low_stock_items()
         return {"low_stock": items}
     except Exception:
         return {
@@ -170,7 +170,7 @@ def expiring_stock(days: int = 30):
 
 class InteractionCheckRequest(BaseModel):
     nhs_number: str
-    new_medication_name: str
+    new_medication: str
 
 
 class EngagementRequest(BaseModel):
@@ -204,10 +204,10 @@ def interaction_check(req: InteractionCheckRequest):
                     "dob": patient["date_of_birth"],
                 },
                 "active_medications": [
-                    {"name": p["medication_name"], "dose": p["dosage"], "frequency": p["frequency"]}
+                    {"name": p["medication"], "dose": p["dosage"], "frequency": p["frequency"]}
                     for p in prescriptions
                 ],
-                "new_medication": req.new_medication_name,
+                "new_medication": req.new_medication,
                 "interaction_report": {
                     "risk_level": "HIGH" if "CRITICAL" in result or "DO NOT" in result else "MODERATE" if "REVIEW" in result else "LOW",
                     "interactions_detected": [],
