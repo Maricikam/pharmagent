@@ -51,17 +51,9 @@
   .interaction-drugs { font-weight: 600; font-size: 14px; color: #1a1a2e; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
   .interaction-mech { font-size: 13px; color: #6b7280; margin-bottom: 7px; line-height: 1.5; }
   .interaction-rec { font-size: 13px; color: #374151; font-weight: 500; }
-  .clinical-box { margin-top: 14px; padding: 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; }
-  .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
-  .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
-  .clinical-box h2, .clinical-box h3 { font-size: 14px; font-weight: 700; margin: 10px 0 4px; color: inherit; }
-  .clinical-box h2:first-child, .clinical-box h3:first-child { margin-top: 0; }
-  .clinical-box p { margin: 4px 0; }
-  .clinical-box strong { font-weight: 700; }
-  .clinical-box em { font-style: italic; }
-  .clinical-box ul { padding-left: 1.2rem; margin: 4px 0; }
-  .clinical-box li { margin: 2px 0; }
-  .clinical-box .divider { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0; }
+  .clinical-box { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+  .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
   .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f3f4f6; }
   .stock-row:last-child { border-bottom: none; }
   .stock-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
@@ -76,13 +68,7 @@
   .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .audit-line { margin-top: 10px; font-size: 11px; color: #9ca3af; }
-  .msg-box { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; color: #1a1a2e; }
-  .msg-box h2, .msg-box h3 { font-size: 14px; font-weight: 700; margin: 10px 0 4px; }
-  .msg-box h2:first-child { margin-top: 0; }
-  .msg-box p { margin: 4px 0; }
-  .msg-box strong { font-weight: 700; }
-  .msg-box ul { padding-left: 1.2rem; margin: 4px 0; }
-  .msg-box li { margin: 2px 0; }
+  .msg-box { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; color: #1a1a2e; white-space: pre-wrap; }
   .empty-state { text-align: center; padding: 2rem; color: #6b7280; font-size: 14px; }
   .empty-state i { font-size: 32px; color: #1D9E75; display: block; margin-bottom: 8px; }
 </style>
@@ -104,6 +90,7 @@
     <button class="nav-btn" onclick="showTab('engagement', this)"><i class="ti ti-mail"></i> Engagement</button>
   </nav>
 
+  <!-- INTERACTION CHECK -->
   <div id="interaction" class="section active">
     <div class="card">
       <div class="card-title"><i class="ti ti-shield-check"></i> Drug interaction checker</div>
@@ -118,10 +105,11 @@
     <div class="result-box" id="int-result"></div>
   </div>
 
+  <!-- STOCK -->
   <div id="stock" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-box"></i> Stock intelligence</div>
-      <p style="font-size:14px;color:#6b7280;line-height:1.6">Review current stock levels and medications approaching expiry.</p>
+      <p style="font-size:14px;color:#6b7280;line-height:1.6">Run an AI-powered review of current stock levels and medications approaching expiry.</p>
       <button class="btn btn-primary" id="stock-btn" onclick="runStockReview()">
         <i class="ti ti-refresh"></i> Run stock review
       </button>
@@ -129,6 +117,7 @@
     <div class="result-box" id="stock-result"></div>
   </div>
 
+  <!-- PATIENT -->
   <div id="patient" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-user"></i> Patient lookup</div>
@@ -141,6 +130,7 @@
     <div class="result-box" id="pat-result"></div>
   </div>
 
+  <!-- ENGAGEMENT -->
   <div id="engagement" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
@@ -172,35 +162,13 @@ function showTab(tab, btn) {
 
 function setLoading(btnId, loading, originalHTML) {
   const btn = document.getElementById(btnId);
-  if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Running...'; }
-  else { btn.disabled = false; btn.innerHTML = originalHTML; }
-}
-
-// Convert markdown-style text to clean HTML
-function renderMarkdown(text) {
-  if (!text) return '';
-  return text
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^---+$/gm, '<hr class="divider">')
-    .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
-    .replace(/\|[^\n]+\|\n\|[-|]+\|\n(\|[^\n]+\|\n)*/g, '') // remove markdown tables
-    .replace(/\|[^|\n]+/g, '') // remove remaining pipe chars
-    .replace(/\n{2,}/g, '</p><p>')
-    .replace(/\n/g, ' ')
-    .replace(/^/, '<p>').replace(/$/, '</p>')
-    .replace(/<p><\/p>/g, '')
-    .replace(/<p>(<h[23]>)/g, '$1')
-    .replace(/(<\/h[23]>)<\/p>/g, '$1')
-    .replace(/<p>(<ul>)/g, '$1')
-    .replace(/(<\/ul>)<\/p>/g, '$1')
-    .replace(/<p>(<hr)/g, '$1')
-    .replace(/(>)<\/p>/g, '$1');
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Running...';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
 }
 
 async function runInteractionCheck() {
@@ -223,10 +191,8 @@ async function runInteractionCheck() {
     const p = r.patient;
     const ir = r.interaction_report;
     const initials = p.name.split(' ').map(n => n[0]).join('');
-    const riskLevel = ir.risk_level;
-    const isSafe = riskLevel === 'LOW';
-    const hasClinicalText = ir.clinical_decision && ir.clinical_decision.length > 10;
-
+    const isHigh = ir.risk_level === 'HIGH';
+    const isSafe = !isHigh && ir.interactions_detected.length === 0;
     let html = `
       <div class="patient-row">
         <div class="avatar">${initials}</div>
@@ -234,19 +200,14 @@ async function runInteractionCheck() {
           <div class="patient-name">${p.name}</div>
           <div class="patient-meta">NHS: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div>
         </div>
-        <span class="badge badge-${riskLevel === 'HIGH' ? 'high' : riskLevel === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">
-          ${riskLevel} RISK
+        <span class="badge badge-${ir.risk_level === 'HIGH' ? 'high' : ir.risk_level === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">
+          ${ir.risk_level} RISK
         </span>
       </div>
       <div class="section-label">Current medications</div>
-      <div style="margin-bottom:12px">${r.active_medications.map(m => {
-        const dose = m.dose || '';
-        const freq = m.frequency || '';
-        return `<span class="med-pill">${m.name} ${dose} · ${freq}</span>`;
-      }).join('')}</div>
-      <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication || med}</strong></div>`;
-
-    if (ir.interactions_detected && ir.interactions_detected.length > 0) {
+      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} ${m.dose}</span>`).join('')}</div>
+      <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
+    if (ir.interactions_detected.length > 0) {
       ir.interactions_detected.forEach(i => {
         const cls = i.severity === 'Major' ? '' : 'moderate';
         html += `<div class="interaction-item ${cls}">
@@ -259,16 +220,13 @@ async function runInteractionCheck() {
           <div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div>
         </div>`;
       });
-    }
-
-    if (hasClinicalText) {
-      html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}">
-        ${renderMarkdown(ir.clinical_decision)}
-      </div>`;
-    } else if (isSafe) {
+    } else {
       html += `<div class="empty-state"><i class="ti ti-circle-check"></i>No interactions detected</div>`;
     }
-
+    html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}">
+      <i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}"></i>
+      ${ir.clinical_decision}
+    </div>`;
     html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
   } catch(e) {
@@ -288,8 +246,8 @@ async function runStockReview() {
       fetch(BASE + '/stock/low').then(r => r.json()),
       fetch(BASE + '/stock/expiring').then(r => r.json())
     ]);
-    const low = lowRes.low_stock || [];
-    const exp = expRes.expiring_stock || [];
+    const low = lowRes.low_stock || lowRes.items || [];
+    const exp = expRes.expiring_stock || expRes.items || [];
     let html = `<div class="stat-grid">
       <div class="stat"><div class="stat-label">Low stock items</div><div class="stat-value ${low.length > 0 ? 'danger' : 'good'}">${low.length}</div></div>
       <div class="stat"><div class="stat-label">Expiring soon</div><div class="stat-value ${exp.length > 0 ? 'warning' : 'good'}">${exp.length}</div></div>
@@ -297,10 +255,8 @@ async function runStockReview() {
     if (low.length > 0) {
       html += '<div class="section-label">Low stock — reorder needed</div>';
       low.forEach(item => {
-        const name = item.medication || item.name || item.medication_name || 'Unknown';
-        const qty = item.quantity ?? item.current_stock ?? '';
         html += `<div class="stock-row">
-          <div><div class="stock-name">${name}</div><div class="stock-detail">${qty} units remaining</div></div>
+          <div><div class="stock-name">${item.name || item.medication_name}</div><div class="stock-detail">${item.current_stock ?? item.quantity ?? ''} units remaining</div></div>
           <span class="badge badge-high">Reorder</span>
         </div>`;
       });
@@ -308,9 +264,8 @@ async function runStockReview() {
     if (exp.length > 0) {
       html += '<div class="section-label" style="margin-top:16px">Expiring within 30 days</div>';
       exp.forEach(item => {
-        const name = item.medication || item.name || item.medication_name || 'Unknown';
         html += `<div class="stock-row">
-          <div><div class="stock-name">${name}</div><div class="stock-detail">Expires: ${item.expiry_date || item.expiry}</div></div>
+          <div><div class="stock-name">${item.name || item.medication_name}</div><div class="stock-detail">Expires: ${item.expiry_date || item.expiry}</div></div>
           <span class="badge badge-moderate">Expiring</span>
         </div>`;
       });
@@ -378,11 +333,11 @@ async function runEngagement() {
       body: JSON.stringify({nhs_number: nhs, campaign_type: type})
     });
     const data = await res.json();
-    const patName = data.patient?.name || '';
-    const msg = data.message || data.campaign?.message || JSON.stringify(data, null, 2);
+    const patName = data.patient?.name || data.report?.patient?.name || '';
+    const msg = data.message || data.campaign?.message || data.report?.message || JSON.stringify(data, null, 2);
     let html = '';
-    if (patName) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;font-weight:500">Campaign for: <strong style="color:#1a1a2e">${patName}</strong></div>`;
-    html += `<div class="msg-box">${renderMarkdown(typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2))}</div>`;
+    if (patName) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;font-weight:500">Campaign generated for: <strong style="color:#1a1a2e">${patName}</strong></div>`;
+    html += `<div class="msg-box">${typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2)}</div>`;
     box.innerHTML = html;
   } catch(e) {
     box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Error generating engagement message.</p>';
