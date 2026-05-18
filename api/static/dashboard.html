@@ -153,6 +153,34 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
+function inlineMd(text) {
+  return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+function renderMarkdown(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  for (const line of lines) {
+    if (line.trim() === '---') {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:8px 0">';
+    } else if (/^##\s/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div style="font-size:13px;font-weight:700;margin:8px 0 4px">${inlineMd(line.replace(/^##\s+/, ''))}</div>`;
+    } else if (/^-\s/.test(line)) {
+      if (!inList) { html += '<ul style="padding-left:18px;margin:4px 0">'; inList = true; }
+      html += `<li style="margin:2px 0">${inlineMd(line.replace(/^-\s+/, ''))}</li>`;
+    } else if (line.trim()) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p style="margin:4px 0">${inlineMd(line)}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
 function showTab(tab, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -205,7 +233,7 @@ async function runInteractionCheck() {
         </span>
       </div>
       <div class="section-label">Current medications</div>
-      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} ${m.dose}</span>`).join('')}</div>
+      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} · ${m.dose}${m.frequency ? ' · ' + m.frequency : ''}</span>`).join('')}</div>
       <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
     if (ir.interactions_detected.length > 0) {
       ir.interactions_detected.forEach(i => {
@@ -220,13 +248,17 @@ async function runInteractionCheck() {
           <div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div>
         </div>`;
       });
-    } else {
+    } else if (!ir.clinical_decision) {
       html += `<div class="empty-state"><i class="ti ti-circle-check"></i>No interactions detected</div>`;
     }
-    html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}">
-      <i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}"></i>
-      ${ir.clinical_decision}
-    </div>`;
+    if (ir.clinical_decision) {
+      html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}" style="display:block;font-weight:normal">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}" style="margin-top:2px;flex-shrink:0;font-size:16px"></i>
+          <div>${renderMarkdown(ir.clinical_decision)}</div>
+        </div>
+      </div>`;
+    }
     html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
   } catch(e) {
