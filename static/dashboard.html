@@ -1,116 +1,141 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PharmAgent AI — Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-.nav { display: flex; gap: 4px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.nav-btn { padding: 8px 16px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-.nav-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
-.nav-btn.active { background: #1D9E75; border-color: #1D9E75; color: #fff; font-weight: 500; }
-.section { display: none; }
-.section.active { display: block; }
-.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
-.card-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-label { font-size: 13px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; margin-top: 12px; }
-label:first-of-type { margin-top: 0; }
-input, select, textarea { width: 100%; padding: 8px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); }
-textarea { resize: vertical; min-height: 80px; }
-.btn { padding: 9px 20px; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; margin-top: 1rem; }
-.btn-primary { background: #1D9E75; color: #fff; }
-.btn-primary:hover { background: #0F6E56; }
-.btn-primary:disabled { background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: not-allowed; }
-.result-box { margin-top: 1rem; padding: 1rem; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); display: none; }
-.result-box.show { display: block; }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; }
-.badge-high { background: #FCEBEB; color: #A32D2D; }
-.badge-moderate { background: #FAEEDA; color: #854F0B; }
-.badge-low { background: #EAF3DE; color: #3B6D11; }
-.badge-info { background: #E6F1FB; color: #185FA5; }
-.interaction-item { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px; margin-top: 8px; background: var(--color-background-primary); }
-.interaction-drugs { font-weight: 500; font-size: 14px; color: var(--color-text-primary); margin-bottom: 4px; }
-.interaction-mech { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; }
-.interaction-rec { font-size: 13px; color: var(--color-text-primary); }
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 1rem; }
-.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
-.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
-.stat-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
-.stock-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
-.stock-item:last-child { border-bottom: none; }
-.stock-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
-.stock-detail { font-size: 12px; color: var(--color-text-secondary); }
-.clinical-decision { margin-top: 12px; padding: 10px 14px; border-radius: var(--border-radius-md); background: #FCEBEB; border: 0.5px solid #F7C1C1; color: #A32D2D; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-.clinical-safe { background: #EAF3DE; border-color: #C0DD97; color: #3B6D11; }
-.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.patient-info { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
-.avatar { width: 44px; height: 44px; border-radius: 50%; background: #E1F5EE; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 14px; color: #0F6E56; flex-shrink: 0; }
-.med-pill { display: inline-block; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 99px; padding: 3px 10px; font-size: 12px; color: var(--color-text-secondary); margin: 2px; }
-.section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); font-weight: 500; margin-bottom: 8px; margin-top: 16px; }
-.header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
-.logo { width: 36px; height: 36px; background: #1D9E75; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
-.header-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
-.header-sub { font-size: 13px; color: var(--color-text-secondary); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: #1a1a2e; min-height: 100vh; }
+  .topbar { background: #fff; border-bottom: 1px solid #e5e9f0; padding: 0 2rem; display: flex; align-items: center; gap: 12px; height: 60px; position: sticky; top: 0; z-index: 10; }
+  .logo { width: 36px; height: 36px; background: #1D9E75; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; flex-shrink: 0; }
+  .topbar-title { font-size: 17px; font-weight: 600; color: #1a1a2e; }
+  .topbar-sub { font-size: 13px; color: #6b7280; margin-left: 4px; }
+  .topbar-badge { margin-left: auto; background: #e6f7f1; color: #1D9E75; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+  .main { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+  .nav { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .nav-btn { padding: 9px 18px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 7px; transition: all 0.15s; font-family: inherit; }
+  .nav-btn:hover { border-color: #1D9E75; color: #1D9E75; background: #f0faf6; }
+  .nav-btn.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+  .nav-btn i { font-size: 16px; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card { background: #fff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .card-title { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+  .card-title i { color: #1D9E75; font-size: 18px; }
+  label { font-size: 13px; font-weight: 500; color: #374151; display: block; margin-bottom: 5px; margin-top: 14px; }
+  label:first-of-type { margin-top: 0; }
+  input, select { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e9f0; border-radius: 8px; font-size: 14px; color: #1a1a2e; font-family: inherit; background: #fff; transition: border-color 0.15s; outline: none; }
+  input:focus, select:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  .btn { padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 7px; margin-top: 1.25rem; font-family: inherit; transition: all 0.15s; }
+  .btn-primary { background: #1D9E75; color: #fff; }
+  .btn-primary:hover { background: #189065; }
+  .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+  .result-box { margin-top: 1.25rem; padding: 1.25rem; border-radius: 10px; border: 1px solid #e5e9f0; background: #f9fafb; display: none; }
+  .result-box.show { display: block; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-high { background: #fef2f2; color: #dc2626; }
+  .badge-moderate { background: #fffbeb; color: #d97706; }
+  .badge-low { background: #f0fdf4; color: #16a34a; }
+  .badge-info { background: #eff6ff; color: #2563eb; }
+  .badge-active { background: #e6f7f1; color: #1D9E75; }
+  .patient-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e9f0; }
+  .avatar { width: 46px; height: 46px; border-radius: 50%; background: #e6f7f1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #1D9E75; flex-shrink: 0; }
+  .patient-name { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+  .patient-meta { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; font-weight: 600; margin: 1rem 0 8px; }
+  .med-pill { display: inline-flex; align-items: center; background: #f3f4f6; border: 1px solid #e5e9f0; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #374151; margin: 3px; font-weight: 500; }
+  .interaction-item { border: 1px solid #fecaca; border-radius: 8px; padding: 12px 14px; margin-top: 10px; background: #fff5f5; }
+  .interaction-item.moderate { border-color: #fde68a; background: #fffdf0; }
+  .interaction-drugs { font-weight: 600; font-size: 14px; color: #1a1a2e; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+  .interaction-mech { font-size: 13px; color: #6b7280; margin-bottom: 7px; line-height: 1.5; }
+  .interaction-rec { font-size: 13px; color: #374151; font-weight: 500; }
+  .clinical-box { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+  .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+  .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f3f4f6; }
+  .stock-row:last-child { border-bottom: none; }
+  .stock-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .stock-detail { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .stat { background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 10px; padding: 1rem; }
+  .stat-label { font-size: 12px; color: #6b7280; font-weight: 500; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 700; }
+  .stat-value.danger { color: #dc2626; }
+  .stat-value.warning { color: #d97706; }
+  .stat-value.good { color: #1D9E75; }
+  .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .audit-line { margin-top: 10px; font-size: 11px; color: #9ca3af; }
+  .msg-box { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; color: #1a1a2e; white-space: pre-wrap; }
+  .empty-state { text-align: center; padding: 2rem; color: #6b7280; font-size: 14px; }
+  .empty-state i { font-size: 32px; color: #1D9E75; display: block; margin-bottom: 8px; }
 </style>
+</head>
+<body>
 
-<h2 class="sr-only">PharmAgent AI — Pharmacy management dashboard with drug interaction checker, stock review, and patient engagement tools</h2>
+<div class="topbar">
+  <div class="logo"><i class="ti ti-pill"></i></div>
+  <span class="topbar-title">PharmAgent AI</span>
+  <span class="topbar-sub">— Pharmacy Management</span>
+  <span class="topbar-badge"><i class="ti ti-circle-check" style="font-size:13px;vertical-align:-1px"></i> Live AI</span>
+</div>
 
-<div style="padding: 1rem 0;">
-  <div class="header">
-    <div class="logo"><i class="ti ti-pill" aria-hidden="true"></i></div>
-    <div>
-      <div class="header-title">PharmAgent AI</div>
-      <div class="header-sub">Pharmacy management dashboard</div>
-    </div>
-  </div>
-
-  <nav class="nav" aria-label="Dashboard sections">
-    <button class="nav-btn active" onclick="showTab('interaction')"><i class="ti ti-shield-check" aria-hidden="true"></i> Interaction check</button>
-    <button class="nav-btn" onclick="showTab('stock')"><i class="ti ti-box" aria-hidden="true"></i> Stock review</button>
-    <button class="nav-btn" onclick="showTab('patient')"><i class="ti ti-user" aria-hidden="true"></i> Patient lookup</button>
-    <button class="nav-btn" onclick="showTab('engagement')"><i class="ti ti-mail" aria-hidden="true"></i> Engagement</button>
+<div class="main">
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('interaction', this)"><i class="ti ti-shield-check"></i> Interaction check</button>
+    <button class="nav-btn" onclick="showTab('stock', this)"><i class="ti ti-box"></i> Stock review</button>
+    <button class="nav-btn" onclick="showTab('patient', this)"><i class="ti ti-user"></i> Patient lookup</button>
+    <button class="nav-btn" onclick="showTab('engagement', this)"><i class="ti ti-mail"></i> Engagement</button>
   </nav>
 
+  <!-- INTERACTION CHECK -->
   <div id="interaction" class="section active">
     <div class="card">
-      <div class="card-title"><i class="ti ti-shield-check" aria-hidden="true" style="color:#1D9E75"></i> Drug interaction checker</div>
+      <div class="card-title"><i class="ti ti-shield-check"></i> Drug interaction checker</div>
       <label for="nhs-input">NHS number</label>
-      <input id="nhs-input" type="text" placeholder="e.g. 4823719056" value="4823719056" />
+      <input id="nhs-input" type="text" placeholder="e.g. 4823719056" value="4823719056">
       <label for="med-input">New medication to check</label>
-      <input id="med-input" type="text" placeholder="e.g. Ibuprofen" value="Ibuprofen" />
+      <input id="med-input" type="text" placeholder="e.g. Ibuprofen" value="Ibuprofen">
       <button class="btn btn-primary" id="int-btn" onclick="runInteractionCheck()">
-        <i class="ti ti-search" aria-hidden="true"></i> Check interactions
+        <i class="ti ti-search"></i> Check interactions
       </button>
     </div>
     <div class="result-box" id="int-result"></div>
   </div>
 
+  <!-- STOCK -->
   <div id="stock" class="section">
     <div class="card">
-      <div class="card-title"><i class="ti ti-box" aria-hidden="true" style="color:#1D9E75"></i> Stock intelligence</div>
-      <p style="font-size:14px; color: var(--color-text-secondary); margin-bottom:1rem;">Run an AI-powered review of current stock levels and expiring medications.</p>
+      <div class="card-title"><i class="ti ti-box"></i> Stock intelligence</div>
+      <p style="font-size:14px;color:#6b7280;line-height:1.6">Run an AI-powered review of current stock levels and medications approaching expiry.</p>
       <button class="btn btn-primary" id="stock-btn" onclick="runStockReview()">
-        <i class="ti ti-refresh" aria-hidden="true"></i> Run stock review
+        <i class="ti ti-refresh"></i> Run stock review
       </button>
     </div>
     <div class="result-box" id="stock-result"></div>
   </div>
 
+  <!-- PATIENT -->
   <div id="patient" class="section">
     <div class="card">
-      <div class="card-title"><i class="ti ti-user" aria-hidden="true" style="color:#1D9E75"></i> Patient lookup</div>
+      <div class="card-title"><i class="ti ti-user"></i> Patient lookup</div>
       <label for="pat-nhs">NHS number</label>
-      <input id="pat-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056" />
+      <input id="pat-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
       <button class="btn btn-primary" id="pat-btn" onclick="runPatientLookup()">
-        <i class="ti ti-search" aria-hidden="true"></i> Look up patient
+        <i class="ti ti-search"></i> Look up patient
       </button>
     </div>
     <div class="result-box" id="pat-result"></div>
   </div>
 
+  <!-- ENGAGEMENT -->
   <div id="engagement" class="section">
     <div class="card">
-      <div class="card-title"><i class="ti ti-mail" aria-hidden="true" style="color:#1D9E75"></i> Patient engagement campaign</div>
+      <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
       <label for="eng-nhs">NHS number</label>
-      <input id="eng-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056" />
+      <input id="eng-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
       <label for="eng-type">Campaign type</label>
       <select id="eng-type">
         <option value="refill_reminder">Refill reminder</option>
@@ -118,7 +143,7 @@ textarea { resize: vertical; min-height: 80px; }
         <option value="seasonal">Seasonal health check</option>
       </select>
       <button class="btn btn-primary" id="eng-btn" onclick="runEngagement()">
-        <i class="ti ti-send" aria-hidden="true"></i> Generate message
+        <i class="ti ti-send"></i> Generate message
       </button>
     </div>
     <div class="result-box" id="eng-result"></div>
@@ -128,20 +153,21 @@ textarea { resize: vertical; min-height: 80px; }
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
-function showTab(tab) {
+function showTab(tab, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tab).classList.add('active');
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
 }
 
-function setLoading(btnId, loading) {
+function setLoading(btnId, loading, originalHTML) {
   const btn = document.getElementById(btnId);
   if (loading) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Running...';
   } else {
     btn.disabled = false;
+    btn.innerHTML = originalHTML;
   }
 }
 
@@ -149,10 +175,11 @@ async function runInteractionCheck() {
   const nhs = document.getElementById('nhs-input').value.trim();
   const med = document.getElementById('med-input').value.trim();
   if (!nhs || !med) return;
+  const orig = '<i class="ti ti-search"></i> Check interactions';
   setLoading('int-btn', true);
   const box = document.getElementById('int-result');
   box.classList.add('show');
-  box.innerHTML = '<p style="color:var(--color-text-secondary);font-size:14px;">Checking interactions...</p>';
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Checking interactions with AI agent...</p>';
   try {
     const res = await fetch(BASE + '/agents/interaction-check', {
       method: 'POST',
@@ -163,63 +190,72 @@ async function runInteractionCheck() {
     const r = data.report;
     const p = r.patient;
     const ir = r.interaction_report;
-    const riskClass = ir.risk_level === 'HIGH' ? 'badge-high' : ir.risk_level === 'MODERATE' ? 'badge-moderate' : 'badge-low';
-    const isSafe = ir.risk_level === 'LOW' || ir.interactions_detected.length === 0;
+    const initials = p.name.split(' ').map(n => n[0]).join('');
+    const isHigh = ir.risk_level === 'HIGH';
+    const isSafe = !isHigh && ir.interactions_detected.length === 0;
     let html = `
-      <div class="patient-info">
-        <div class="avatar">${p.name.split(' ').map(n=>n[0]).join('')}</div>
+      <div class="patient-row">
+        <div class="avatar">${initials}</div>
         <div>
-          <div style="font-weight:500;font-size:15px;color:var(--color-text-primary)">${p.name}</div>
-          <div style="font-size:12px;color:var(--color-text-secondary)">NHS: ${p.nhs_number} · DOB: ${p.dob}</div>
+          <div class="patient-name">${p.name}</div>
+          <div class="patient-meta">NHS: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div>
         </div>
+        <span class="badge badge-${ir.risk_level === 'HIGH' ? 'high' : ir.risk_level === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">
+          ${ir.risk_level} RISK
+        </span>
       </div>
       <div class="section-label">Current medications</div>
-      <div style="margin-bottom:8px">${r.active_medications.map(m=>`<span class="med-pill">${m.name} ${m.dose}</span>`).join('')}</div>
-      <div class="section-label">Checking: <strong>${r.new_medication}</strong></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <span style="font-size:14px;color:var(--color-text-secondary)">Risk level:</span>
-        <span class="badge ${riskClass}">${ir.risk_level}</span>
-      </div>`;
+      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} ${m.dose}</span>`).join('')}</div>
+      <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
     if (ir.interactions_detected.length > 0) {
       ir.interactions_detected.forEach(i => {
-        const sClass = i.severity === 'Major' ? 'badge-high' : i.severity === 'Moderate' ? 'badge-moderate' : 'badge-low';
-        html += `<div class="interaction-item">
-          <div class="interaction-drugs"><i class="ti ti-alert-triangle" aria-hidden="true"></i> ${i.drug_a} + ${i.drug_b} <span class="badge ${sClass}" style="margin-left:4px">${i.severity}</span></div>
+        const cls = i.severity === 'Major' ? '' : 'moderate';
+        html += `<div class="interaction-item ${cls}">
+          <div class="interaction-drugs">
+            <i class="ti ti-alert-triangle" style="color:${cls ? '#d97706' : '#dc2626'}"></i>
+            ${i.drug_a} + ${i.drug_b}
+            <span class="badge badge-${i.severity === 'Major' ? 'high' : 'moderate'}">${i.severity}</span>
+          </div>
           <div class="interaction-mech">${i.mechanism}</div>
-          <div class="interaction-rec"><i class="ti ti-arrow-right" aria-hidden="true"></i> ${i.recommendation}</div>
+          <div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div>
         </div>`;
       });
+    } else {
+      html += `<div class="empty-state"><i class="ti ti-circle-check"></i>No interactions detected</div>`;
     }
-    html += `<div class="clinical-decision ${isSafe ? 'clinical-safe' : ''}"><i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}" aria-hidden="true"></i>${ir.clinical_decision}</div>`;
-    html += `<div style="margin-top:8px;font-size:11px;color:var(--color-text-tertiary)">Audit ref: ${ir.audit_ref} · Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
+    html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}">
+      <i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}"></i>
+      ${ir.clinical_decision}
+    </div>`;
+    html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:var(--color-text-danger);font-size:14px;">Error connecting to PharmAgent API. Please try again.</p>';
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> Error connecting to PharmAgent API. Please try again.</p>';
   }
-  document.getElementById('int-btn').disabled = false;
-  document.getElementById('int-btn').innerHTML = '<i class="ti ti-search" aria-hidden="true"></i> Check interactions';
+  setLoading('int-btn', false, orig);
 }
 
 async function runStockReview() {
+  const orig = '<i class="ti ti-refresh"></i> Run stock review';
   setLoading('stock-btn', true);
   const box = document.getElementById('stock-result');
   box.classList.add('show');
-  box.innerHTML = '<p style="color:var(--color-text-secondary);font-size:14px;">Running stock review...</p>';
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Fetching stock data...</p>';
   try {
     const [lowRes, expRes] = await Promise.all([
       fetch(BASE + '/stock/low').then(r => r.json()),
       fetch(BASE + '/stock/expiring').then(r => r.json())
     ]);
-    const low = lowRes.low_stock || [];
-    const exp = expRes.expiring_stock || [];
+    const low = lowRes.low_stock || lowRes.items || [];
+    const exp = expRes.expiring_stock || expRes.items || [];
     let html = `<div class="stat-grid">
-      <div class="stat"><div class="stat-label">Low stock items</div><div class="stat-value" style="color:#A32D2D">${low.length}</div></div>
-      <div class="stat"><div class="stat-label">Expiring soon</div><div class="stat-value" style="color:#854F0B">${exp.length}</div></div>
+      <div class="stat"><div class="stat-label">Low stock items</div><div class="stat-value ${low.length > 0 ? 'danger' : 'good'}">${low.length}</div></div>
+      <div class="stat"><div class="stat-label">Expiring soon</div><div class="stat-value ${exp.length > 0 ? 'warning' : 'good'}">${exp.length}</div></div>
     </div>`;
     if (low.length > 0) {
-      html += '<div class="section-label">Low stock</div>';
+      html += '<div class="section-label">Low stock — reorder needed</div>';
       low.forEach(item => {
-        html += `<div class="stock-item">
+        html += `<div class="stock-row">
           <div><div class="stock-name">${item.name || item.medication_name}</div><div class="stock-detail">${item.current_stock ?? item.quantity ?? ''} units remaining</div></div>
           <span class="badge badge-high">Reorder</span>
         </div>`;
@@ -228,67 +264,68 @@ async function runStockReview() {
     if (exp.length > 0) {
       html += '<div class="section-label" style="margin-top:16px">Expiring within 30 days</div>';
       exp.forEach(item => {
-        html += `<div class="stock-item">
+        html += `<div class="stock-row">
           <div><div class="stock-name">${item.name || item.medication_name}</div><div class="stock-detail">Expires: ${item.expiry_date || item.expiry}</div></div>
           <span class="badge badge-moderate">Expiring</span>
         </div>`;
       });
     }
     if (low.length === 0 && exp.length === 0) {
-      html += '<div style="text-align:center;padding:1.5rem;color:var(--color-text-secondary);font-size:14px"><i class="ti ti-circle-check" style="color:#3B6D11;font-size:24px;display:block;margin-bottom:8px" aria-hidden="true"></i>All stock levels are healthy</div>';
+      html += '<div class="empty-state"><i class="ti ti-circle-check"></i>All stock levels are healthy</div>';
     }
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:var(--color-text-danger);font-size:14px;">Error fetching stock data.</p>';
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Error fetching stock data. Please try again.</p>';
   }
-  document.getElementById('stock-btn').disabled = false;
-  document.getElementById('stock-btn').innerHTML = '<i class="ti ti-refresh" aria-hidden="true"></i> Run stock review';
+  setLoading('stock-btn', false, orig);
 }
 
 async function runPatientLookup() {
   const nhs = document.getElementById('pat-nhs').value.trim();
   if (!nhs) return;
+  const orig = '<i class="ti ti-search"></i> Look up patient';
   setLoading('pat-btn', true);
   const box = document.getElementById('pat-result');
   box.classList.add('show');
-  box.innerHTML = '<p style="color:var(--color-text-secondary);font-size:14px;">Looking up patient...</p>';
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Looking up patient...</p>';
   try {
     const res = await fetch(BASE + '/patients/' + nhs);
     const data = await res.json();
     const p = data.patient || data;
     const meds = p.active_medications || p.medications || [];
-    let html = `<div class="patient-info">
-      <div class="avatar">${(p.name||'??').split(' ').map(n=>n[0]).join('')}</div>
+    const initials = (p.name || 'XX').split(' ').map(n => n[0]).join('');
+    let html = `<div class="patient-row">
+      <div class="avatar">${initials}</div>
       <div>
-        <div style="font-weight:500;font-size:15px;color:var(--color-text-primary)">${p.name || 'Unknown'}</div>
-        <div style="font-size:12px;color:var(--color-text-secondary)">NHS: ${p.nhs_number || nhs} · DOB: ${p.dob || 'N/A'}</div>
+        <div class="patient-name">${p.name || 'Unknown'}</div>
+        <div class="patient-meta">NHS: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div>
       </div>
     </div>`;
     if (meds.length > 0) {
       html += '<div class="section-label">Active medications</div>';
       meds.forEach(m => {
-        html += `<div class="stock-item">
+        html += `<div class="stock-row">
           <div><div class="stock-name">${m.name}</div><div class="stock-detail">${m.dose} · ${m.frequency}</div></div>
-          <span class="badge badge-info">Active</span>
+          <span class="badge badge-active">Active</span>
         </div>`;
       });
     }
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:var(--color-text-danger);font-size:14px;">Patient not found or error connecting.</p>';
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Patient not found or connection error.</p>';
   }
-  document.getElementById('pat-btn').disabled = false;
-  document.getElementById('pat-btn').innerHTML = '<i class="ti ti-search" aria-hidden="true"></i> Look up patient';
+  setLoading('pat-btn', false, orig);
 }
 
 async function runEngagement() {
   const nhs = document.getElementById('eng-nhs').value.trim();
   const type = document.getElementById('eng-type').value;
   if (!nhs) return;
+  const orig = '<i class="ti ti-send"></i> Generate message';
   setLoading('eng-btn', true);
   const box = document.getElementById('eng-result');
   box.classList.add('show');
-  box.innerHTML = '<p style="color:var(--color-text-secondary);font-size:14px;">Generating personalised message...</p>';
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Generating personalised message...</p>';
   try {
     const res = await fetch(BASE + '/agents/engagement-campaign', {
       method: 'POST',
@@ -296,16 +333,17 @@ async function runEngagement() {
       body: JSON.stringify({nhs_number: nhs, campaign_type: type})
     });
     const data = await res.json();
-    const msg = data.message || data.campaign?.message || data.engagement?.message || JSON.stringify(data, null, 2);
     const patName = data.patient?.name || data.report?.patient?.name || '';
+    const msg = data.message || data.campaign?.message || data.report?.message || JSON.stringify(data, null, 2);
     let html = '';
-    if (patName) html += `<div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Campaign for: <strong>${patName}</strong></div>`;
-    html += `<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px;font-size:14px;line-height:1.6;color:var(--color-text-primary);white-space:pre-wrap">${typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2)}</div>`;
+    if (patName) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;font-weight:500">Campaign generated for: <strong style="color:#1a1a2e">${patName}</strong></div>`;
+    html += `<div class="msg-box">${typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2)}</div>`;
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:var(--color-text-danger);font-size:14px;">Error generating campaign.</p>';
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Error generating engagement message.</p>';
   }
-  document.getElementById('eng-btn').disabled = false;
-  document.getElementById('eng-btn').innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Generate message';
+  setLoading('eng-btn', false, orig);
 }
 </script>
+</body>
+</html>
