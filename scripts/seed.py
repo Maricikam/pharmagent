@@ -25,51 +25,73 @@ def seed():
     # --- Medications with known interactions ---
     medications = [
         Medication(name="Warfarin 5mg", generic_name="warfarin", category="Anticoagulant",
-                   unit="tablets", interactions="aspirin,ibuprofen,naproxen"),
+                   unit="tablets", interactions="aspirin,ibuprofen,naproxen,clarithromycin,amiodarone"),
         Medication(name="Aspirin 75mg", generic_name="aspirin", category="Antiplatelet",
-                   unit="tablets", interactions="warfarin,ibuprofen,clopidogrel"),
+                   unit="tablets", interactions="warfarin,ibuprofen,clopidogrel,naproxen"),
         Medication(name="Metformin 500mg", generic_name="metformin", category="Antidiabetic",
-                   unit="tablets", interactions="contrast_dye"),
+                   unit="tablets", interactions="contrast_dye,alcohol"),
         Medication(name="Lisinopril 10mg", generic_name="lisinopril", category="ACE Inhibitor",
-                   unit="tablets", interactions="potassium,spironolactone"),
+                   unit="tablets", interactions="potassium,spironolactone,ibuprofen,naproxen"),
         Medication(name="Atorvastatin 20mg", generic_name="atorvastatin", category="Statin",
-                   unit="tablets", interactions="clarithromycin,erythromycin"),
+                   unit="tablets", interactions="clarithromycin,erythromycin,amiodarone"),
         Medication(name="Amoxicillin 500mg", generic_name="amoxicillin", category="Antibiotic",
                    unit="capsules", interactions="methotrexate"),
         Medication(name="Omeprazole 20mg", generic_name="omeprazole", category="PPI",
-                   unit="capsules", interactions="clopidogrel"),
+                   unit="capsules", interactions="clopidogrel,sertraline"),
         Medication(name="Ibuprofen 400mg", generic_name="ibuprofen", category="NSAID",
-                   unit="tablets", interactions="warfarin,aspirin,lisinopril"),
+                   unit="tablets", interactions="warfarin,aspirin,lisinopril,prednisolone"),
         Medication(name="Amlodipine 5mg", generic_name="amlodipine", category="Calcium Channel Blocker",
                    unit="tablets", interactions="simvastatin"),
         Medication(name="Sertraline 50mg", generic_name="sertraline", category="SSRI",
-                   unit="tablets", interactions="tramadol,linezolid,monoamine_oxidase_inhibitors"),
+                   unit="tablets", interactions="tramadol,linezolid,monoamine_oxidase_inhibitors,amitriptyline"),
         Medication(name="Salbutamol Inhaler", generic_name="salbutamol", category="Bronchodilator",
-                   unit="inhaler", interactions=""),
+                   unit="inhaler", interactions="propranolol,atenolol"),
         Medication(name="Levothyroxine 50mcg", generic_name="levothyroxine", category="Thyroid Hormone",
-                   unit="tablets", interactions="calcium,iron,antacids"),
+                   unit="tablets", interactions="calcium,iron,antacids,sertraline"),
         Medication(name="Clopidogrel 75mg", generic_name="clopidogrel", category="Antiplatelet",
                    unit="tablets", interactions="aspirin,omeprazole,warfarin"),
         Medication(name="Spironolactone 25mg", generic_name="spironolactone", category="Diuretic",
-                   unit="tablets", interactions="lisinopril,potassium"),
+                   unit="tablets", interactions="lisinopril,potassium,ramipril"),
         Medication(name="Clarithromycin 500mg", generic_name="clarithromycin", category="Antibiotic",
-                   unit="tablets", interactions="atorvastatin,simvastatin,warfarin"),
+                   unit="tablets", interactions="atorvastatin,simvastatin,warfarin,digoxin"),
+        Medication(name="Digoxin 125mcg", generic_name="digoxin", category="Cardiac Glycoside",
+                   unit="tablets", interactions="amiodarone,clarithromycin,furosemide,spironolactone"),
+        Medication(name="Furosemide 40mg", generic_name="furosemide", category="Loop Diuretic",
+                   unit="tablets", interactions="digoxin,lithium,gentamicin"),
+        Medication(name="Prednisolone 5mg", generic_name="prednisolone", category="Corticosteroid",
+                   unit="tablets", interactions="ibuprofen,naproxen,aspirin,warfarin"),
+        Medication(name="Bisoprolol 2.5mg", generic_name="bisoprolol", category="Beta Blocker",
+                   unit="tablets", interactions="verapamil,diltiazem,salbutamol"),
+        Medication(name="Beclometasone Inhaler", generic_name="beclometasone", category="Inhaled Corticosteroid",
+                   unit="inhaler", interactions=""),
+        Medication(name="Montelukast 10mg", generic_name="montelukast", category="Leukotriene Antagonist",
+                   unit="tablets", interactions=""),
+        Medication(name="Alendronic Acid 70mg", generic_name="alendronate", category="Bisphosphonate",
+                   unit="tablets", interactions="calcium,antacids,iron"),
+        Medication(name="Calcium + Vit D", generic_name="calcium_vitd", category="Supplement",
+                   unit="tablets", interactions="alendronate,levothyroxine,iron"),
+        Medication(name="Amiodarone 200mg", generic_name="amiodarone", category="Antiarrhythmic",
+                   unit="tablets", interactions="warfarin,digoxin,atorvastatin,simvastatin"),
+        Medication(name="Ramipril 5mg", generic_name="ramipril", category="ACE Inhibitor",
+                   unit="tablets", interactions="potassium,spironolactone,ibuprofen"),
     ]
     db.add_all(medications)
     db.commit()
 
     # --- Patients ---
     patients_data = [
-        ("4823719056", "Margaret", "Campbell",  "1948-03-12", "07700900001", "m.campbell@email.co.uk"),
-        ("3917284650", "James",    "Morrison",  "1955-07-24", "07700900002", "j.morrison@email.co.uk"),
-        ("6012847391", "Patricia", "Henderson", "1962-11-08", "07700900003", "p.henderson@email.co.uk"),
-        ("7384920156", "Robert",   "MacLeod",   "1971-04-30", "07700900004", "r.macleod@email.co.uk"),
-        ("2847563019", "Susan",    "Graham",    "1958-09-15", "07700900005", "s.graham@email.co.uk"),
-        ("5019283746", "William",  "Stevenson", "1943-12-03", "07700900006", "w.stevenson@email.co.uk"),
-        ("8374650192", "Dorothy",  "Reid",      "1967-02-19", "07700900007", "d.reid@email.co.uk"),
-        ("1092837465", "George",   "Fraser",    "1980-06-27", "07700900008", "g.fraser@email.co.uk"),
-        ("9283746501", "Helen",    "Murray",    "1953-08-11", "07700900009", "h.murray@email.co.uk"),
-        ("4756019283", "Thomas",   "Robertson", "1938-01-22", "07700900010", "t.robertson@email.co.uk"),
+        # Original patient
+        ("4823719056", "Margaret",  "Campbell",   "1948-03-12", "07700900001", "m.campbell@email.co.uk"),
+        # New patients
+        ("3917284650", "James",     "Morrison",   "1955-07-24", "07700900002", "j.morrison@email.co.uk"),
+        ("6012847391", "Patricia",  "Henderson",  "1962-11-08", "07700900003", "p.henderson@email.co.uk"),
+        ("7384920156", "Robert",    "MacLeod",    "1971-04-30", "07700900004", "r.macleod@email.co.uk"),
+        ("2847563019", "Susan",     "Graham",     "1958-09-15", "07700900005", "s.graham@email.co.uk"),
+        ("5019283746", "William",   "Stevenson",  "1943-12-03", "07700900006", "w.stevenson@email.co.uk"),
+        ("8374650192", "Dorothy",   "Reid",       "1967-02-19", "07700900007", "d.reid@email.co.uk"),
+        ("1092837465", "George",    "Fraser",     "1980-06-27", "07700900008", "g.fraser@email.co.uk"),
+        ("9283746501", "Helen",     "Murray",     "1953-08-11", "07700900009", "h.murray@email.co.uk"),
+        ("4756019283", "Thomas",    "Robertson",  "1938-01-22", "07700900010", "t.robertson@email.co.uk"),
     ]
     patients = []
     for nhs, fn, ln, dob, phone, email in patients_data:
@@ -79,12 +101,17 @@ def seed():
         patients.append(p)
     db.commit()
 
-    # --- Prescriptions (some with deliberate interaction risks) ---
+    # --- Prescriptions ---
     today = datetime.today()
     med = {m.generic_name: m for m in medications}
 
     prescriptions = [
-        # Margaret — Warfarin + Aspirin (INTERACTION RISK)
+        # ── Margaret Campbell (4823719056) ──────────────────────────────────────
+        # ON: Warfarin + Aspirin
+        # TEST: Ibuprofen → HIGH (GI bleed, triple hit)
+        # TEST: Naproxen  → HIGH (same risk)
+        # TEST: Amiodarone → HIGH (raises Warfarin levels)
+        # TEST: Paracetamol → LOW (safe)
         Prescription(patient=patients[0], medication=med["warfarin"], dosage="5mg daily",
                      frequency="Once daily", prescriber="Dr A. MacKenzie",
                      issue_date=(today - timedelta(days=60)).strftime("%Y-%m-%d"),
@@ -94,7 +121,11 @@ def seed():
                      issue_date=(today - timedelta(days=30)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=2)).strftime("%Y-%m-%d"), active=True),
 
-        # James — Atorvastatin + Clarithromycin (INTERACTION RISK)
+        # ── James Morrison (3917284650) ─────────────────────────────────────────
+        # ON: Atorvastatin + Clarithromycin
+        # TEST: Amiodarone → HIGH (statin toxicity + QT prolongation)
+        # TEST: Warfarin   → MODERATE (clarithromycin raises Warfarin)
+        # TEST: Ibuprofen  → LOW (no direct statin interaction)
         Prescription(patient=patients[1], medication=med["atorvastatin"], dosage="20mg nightly",
                      frequency="Once daily at night", prescriber="Dr B. Thomson",
                      issue_date=(today - timedelta(days=90)).strftime("%Y-%m-%d"),
@@ -104,7 +135,11 @@ def seed():
                      issue_date=(today - timedelta(days=3)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=4)).strftime("%Y-%m-%d"), active=True),
 
-        # Patricia — Lisinopril + Spironolactone (INTERACTION RISK)
+        # ── Patricia Henderson (6012847391) ─────────────────────────────────────
+        # ON: Lisinopril + Spironolactone
+        # TEST: Ibuprofen  → HIGH (reduces ACE inhibitor effect + renal risk)
+        # TEST: Ramipril   → HIGH (double ACE inhibitor + hyperkalemia)
+        # TEST: Paracetamol → SAFE
         Prescription(patient=patients[2], medication=med["lisinopril"], dosage="10mg daily",
                      frequency="Once daily", prescriber="Dr C. Wilson",
                      issue_date=(today - timedelta(days=120)).strftime("%Y-%m-%d"),
@@ -114,31 +149,75 @@ def seed():
                      issue_date=(today - timedelta(days=14)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=7)).strftime("%Y-%m-%d"), active=True),
 
-        # Robert — Metformin (safe)
+        # ── Robert MacLeod (7384920156) ─────────────────────────────────────────
+        # ON: Metformin (diabetes, otherwise healthy)
+        # TEST: Ibuprofen     → MODERATE (renal clearance concern)
+        # TEST: Clarithromycin → LOW (no direct interaction)
+        # TEST: Paracetamol   → SAFE
         Prescription(patient=patients[3], medication=med["metformin"], dosage="500mg twice daily",
                      frequency="Twice daily with meals", prescriber="Dr D. Scott",
                      issue_date=(today - timedelta(days=45)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=15)).strftime("%Y-%m-%d"), active=True),
 
-        # Susan — Sertraline (due soon)
+        # ── Susan Graham (2847563019) ────────────────────────────────────────────
+        # ON: Sertraline (depression)
+        # TEST: Tramadol      → HIGH (serotonin syndrome)
+        # TEST: Amitriptyline → HIGH (serotonin syndrome + CNS depression)
+        # TEST: Omeprazole    → MODERATE (mild CYP2C19 interaction)
+        # TEST: Paracetamol   → SAFE
         Prescription(patient=patients[4], medication=med["sertraline"], dosage="50mg daily",
                      frequency="Once daily in the morning", prescriber="Dr E. Hamilton",
                      issue_date=(today - timedelta(days=55)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=3)).strftime("%Y-%m-%d"), active=True),
 
-        # William — Levothyroxine
-        Prescription(patient=patients[5], medication=med["levothyroxine"], dosage="50mcg daily",
-                     frequency="Once daily, 30 min before food", prescriber="Dr F. Paterson",
-                     issue_date=(today - timedelta(days=80)).strftime("%Y-%m-%d"),
-                     next_due_date=(today + timedelta(days=12)).strftime("%Y-%m-%d"), active=True),
-
-        # Dorothy — Amlodipine
-        Prescription(patient=patients[6], medication=med["amlodipine"], dosage="5mg daily",
-                     frequency="Once daily", prescriber="Dr G. Bell",
-                     issue_date=(today - timedelta(days=70)).strftime("%Y-%m-%d"),
+        # ── William Stevenson (5019283746) ──────────────────────────────────────
+        # ON: Digoxin + Furosemide + Bisoprolol + Amiodarone (heart failure, elderly 81)
+        # TEST: Clarithromycin → HIGH (raises Digoxin to toxic levels)
+        # TEST: Spironolactone → MODERATE (potassium imbalance with Furosemide)
+        # TEST: Ibuprofen      → HIGH (worsens heart failure, fluid retention)
+        # TEST: Paracetamol    → SAFE
+        Prescription(patient=patients[5], medication=med["digoxin"], dosage="125mcg daily",
+                     frequency="Once daily", prescriber="Dr F. Paterson",
+                     issue_date=(today - timedelta(days=180)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=3)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[5], medication=med["furosemide"], dosage="40mg daily",
+                     frequency="Once daily in the morning", prescriber="Dr F. Paterson",
+                     issue_date=(today - timedelta(days=180)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=3)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[5], medication=med["bisoprolol"], dosage="2.5mg daily",
+                     frequency="Once daily", prescriber="Dr F. Paterson",
+                     issue_date=(today - timedelta(days=90)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=10)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[5], medication=med["amiodarone"], dosage="200mg daily",
+                     frequency="Once daily", prescriber="Dr F. Paterson",
+                     issue_date=(today - timedelta(days=60)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=8)).strftime("%Y-%m-%d"), active=True),
 
-        # George — Omeprazole + Clopidogrel (INTERACTION RISK)
+        # ── Dorothy Reid (8374650192) ────────────────────────────────────────────
+        # ON: Prednisolone + Alendronic Acid + Calcium + Vit D (long-term steroids)
+        # TEST: Ibuprofen  → HIGH (doubled GI bleed risk with Prednisolone)
+        # TEST: Aspirin    → HIGH (GI bleed risk with Prednisolone)
+        # TEST: Warfarin   → MODERATE (steroids can affect INR)
+        # TEST: Paracetamol → SAFE
+        Prescription(patient=patients[6], medication=med["prednisolone"], dosage="5mg daily",
+                     frequency="Once daily with food", prescriber="Dr G. Bell",
+                     issue_date=(today - timedelta(days=200)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=8)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[6], medication=med["alendronate"], dosage="70mg weekly",
+                     frequency="Once weekly", prescriber="Dr G. Bell",
+                     issue_date=(today - timedelta(days=200)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=5)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[6], medication=med["calcium_vitd"], dosage="1 tablet daily",
+                     frequency="Once daily", prescriber="Dr G. Bell",
+                     issue_date=(today - timedelta(days=200)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=8)).strftime("%Y-%m-%d"), active=True),
+
+        # ── George Fraser (1092837465) ───────────────────────────────────────────
+        # ON: Omeprazole + Clopidogrel (post-stent)
+        # TEST: Aspirin    → MODERATE (triple antithrombotic risk)
+        # TEST: Ibuprofen  → HIGH (GI bleed + antiplatelet interaction)
+        # TEST: Warfarin   → HIGH (clopidogrel + warfarin = major bleed risk)
+        # TEST: Paracetamol → SAFE
         Prescription(patient=patients[7], medication=med["omeprazole"], dosage="20mg daily",
                      frequency="Once daily before food", prescriber="Dr H. Young",
                      issue_date=(today - timedelta(days=20)).strftime("%Y-%m-%d"),
@@ -148,13 +227,31 @@ def seed():
                      issue_date=(today - timedelta(days=50)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=10)).strftime("%Y-%m-%d"), active=True),
 
-        # Helen — Salbutamol
+        # ── Helen Murray (9283746501) ────────────────────────────────────────────
+        # ON: Salbutamol + Beclometasone + Montelukast (asthma)
+        # TEST: Propranolol  → HIGH (beta-blocker blocks Salbutamol, triggers bronchospasm)
+        # TEST: Ibuprofen    → HIGH (NSAID-exacerbated asthma)
+        # TEST: Aspirin      → MODERATE (can trigger asthma in sensitive patients)
+        # TEST: Amoxicillin  → SAFE (common antibiotic, no asthma interaction)
         Prescription(patient=patients[8], medication=med["salbutamol"], dosage="100mcg as needed",
                      frequency="PRN (as required)", prescriber="Dr I. Black",
                      issue_date=(today - timedelta(days=100)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=20)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[8], medication=med["beclometasone"], dosage="200mcg twice daily",
+                     frequency="Twice daily", prescriber="Dr I. Black",
+                     issue_date=(today - timedelta(days=100)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=20)).strftime("%Y-%m-%d"), active=True),
+        Prescription(patient=patients[8], medication=med["montelukast"], dosage="10mg nightly",
+                     frequency="Once daily at night", prescriber="Dr I. Black",
+                     issue_date=(today - timedelta(days=100)).strftime("%Y-%m-%d"),
+                     next_due_date=(today + timedelta(days=20)).strftime("%Y-%m-%d"), active=True),
 
-        # Thomas — Warfarin + Ibuprofen (CRITICAL INTERACTION)
+        # ── Thomas Robertson (4756019283) ───────────────────────────────────────
+        # ON: Warfarin + Ibuprofen (CRITICAL — already prescribed together!)
+        # TEST: Aspirin      → CRITICAL (triple bleeding risk)
+        # TEST: Clopidogrel  → CRITICAL (triple antithrombotic)
+        # TEST: Amiodarone   → HIGH (raises Warfarin INR significantly)
+        # TEST: Paracetamol  → MODERATE (high doses can raise INR slightly)
         Prescription(patient=patients[9], medication=med["warfarin"], dosage="5mg daily",
                      frequency="Once daily", prescriber="Dr J. Duncan",
                      issue_date=(today - timedelta(days=150)).strftime("%Y-%m-%d"),
@@ -184,6 +281,16 @@ def seed():
         StockItem(medication=med["clopidogrel"],    quantity=160, reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=290)).strftime("%Y-%m-%d"), supplier="Colorcon",            unit_cost=0.35),
         StockItem(medication=med["spironolactone"], quantity=70,  reorder_threshold=60,  reorder_quantity=200, expiry_date=(today + timedelta(days=25)).strftime("%Y-%m-%d"),  supplier="Unichem",             unit_cost=0.14),
         StockItem(medication=med["clarithromycin"], quantity=45,  reorder_threshold=60,  reorder_quantity=200, expiry_date=(today + timedelta(days=150)).strftime("%Y-%m-%d"), supplier="Phoenix Healthcare",  unit_cost=0.45),
+        StockItem(medication=med["digoxin"],        quantity=22,  reorder_threshold=50,  reorder_quantity=200, expiry_date=(today + timedelta(days=310)).strftime("%Y-%m-%d"), supplier="AAH Pharmaceuticals", unit_cost=0.28),
+        StockItem(medication=med["furosemide"],     quantity=110, reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=270)).strftime("%Y-%m-%d"), supplier="Unichem",             unit_cost=0.07),
+        StockItem(medication=med["prednisolone"],   quantity=85,  reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=18)).strftime("%Y-%m-%d"),  supplier="Phoenix Healthcare",  unit_cost=0.06),
+        StockItem(medication=med["bisoprolol"],     quantity=190, reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=420)).strftime("%Y-%m-%d"), supplier="Colorcon",            unit_cost=0.13),
+        StockItem(medication=med["beclometasone"],  quantity=14,  reorder_threshold=30,  reorder_quantity=100, expiry_date=(today + timedelta(days=240)).strftime("%Y-%m-%d"), supplier="AAH Pharmaceuticals", unit_cost=4.20),
+        StockItem(medication=med["montelukast"],    quantity=135, reorder_threshold=60,  reorder_quantity=200, expiry_date=(today + timedelta(days=330)).strftime("%Y-%m-%d"), supplier="Unichem",             unit_cost=0.32),
+        StockItem(medication=med["alendronate"],    quantity=60,  reorder_threshold=40,  reorder_quantity=150, expiry_date=(today + timedelta(days=360)).strftime("%Y-%m-%d"), supplier="Phoenix Healthcare",  unit_cost=0.25),
+        StockItem(medication=med["calcium_vitd"],   quantity=175, reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=410)).strftime("%Y-%m-%d"), supplier="Colorcon",            unit_cost=0.09),
+        StockItem(medication=med["amiodarone"],     quantity=40,  reorder_threshold=50,  reorder_quantity=150, expiry_date=(today + timedelta(days=280)).strftime("%Y-%m-%d"), supplier="AAH Pharmaceuticals", unit_cost=0.55),
+        StockItem(medication=med["ramipril"],       quantity=8,   reorder_threshold=60,  reorder_quantity=200, expiry_date=(today + timedelta(days=340)).strftime("%Y-%m-%d"), supplier="Unichem",             unit_cost=0.12),
     ]
     db.add_all(stock_items)
     db.commit()
@@ -192,8 +299,20 @@ def seed():
     print("✅ Seed complete:")
     print(f"   {len(patients_data)} patients")
     print(f"   {len(medications)} medications")
-    print(f"   {len(prescriptions)} prescriptions (4 interaction risks seeded)")
-    print(f"   {len(stock_items)} stock items (4 low stock, 3 expiring soon)")
+    print(f"   {len(prescriptions)} prescriptions")
+    print(f"   {len(stock_items)} stock items")
+    print()
+    print("Test scenarios:")
+    print("  4823719056  Margaret Campbell   — Warfarin + Aspirin   → try: Ibuprofen, Amiodarone, Paracetamol")
+    print("  3917284650  James Morrison      — Atorvastatin + Clarithromycin → try: Amiodarone, Warfarin")
+    print("  6012847391  Patricia Henderson  — Lisinopril + Spironolactone   → try: Ibuprofen, Ramipril")
+    print("  7384920156  Robert MacLeod      — Metformin only        → try: Ibuprofen, Paracetamol")
+    print("  2847563019  Susan Graham        — Sertraline            → try: Tramadol, Amitriptyline")
+    print("  5019283746  William Stevenson   — Digoxin + Furosemide + Bisoprolol + Amiodarone → try: Clarithromycin, Ibuprofen")
+    print("  8374650192  Dorothy Reid        — Prednisolone + Alendronate   → try: Ibuprofen, Aspirin")
+    print("  1092837465  George Fraser       — Omeprazole + Clopidogrel     → try: Warfarin, Ibuprofen")
+    print("  9283746501  Helen Murray        — Salbutamol + Beclometasone   → try: Propranolol, Ibuprofen")
+    print("  4756019283  Thomas Robertson    — Warfarin + Ibuprofen (!)     → try: Aspirin, Amiodarone")
 
 
 if __name__ == "__main__":
