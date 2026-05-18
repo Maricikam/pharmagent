@@ -1,4 +1,30 @@
 """
+Patient Engagement Agent — PharmAgent AI
+==========================================
+Generates and sends personalised medication refill reminders to patients
+whose prescriptions are due within a configurable time window.
+
+Responsibility:
+    Identifies patients with upcoming prescription due dates, generates
+    a personalised message for each patient based on their medication
+    history and name, and dispatches via SMS or email.
+
+Tools used:
+    - get_patients_due_for_refill() — filter patients by due date window
+    - send_patient_message()        — dispatch SMS/email via Twilio/NHS Notify
+    - log_audit_entry()             — write action to audit trail
+
+Output:
+    Campaign summary including patients contacted, message previews,
+    delivery status, and patients skipped (opted out or recently contacted).
+
+Note:
+    In demo/development mode, messages are simulated and logged rather
+    than dispatched. Production deployment uses Twilio API or NHS Notify
+    for real SMS delivery.
+"""
+
+"""
 Patient Engagement Agent
 Identifies patients due for refills and generates personalised,
 compassionate outreach messages. Simulates sending via SMS or email.

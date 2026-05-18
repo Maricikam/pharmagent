@@ -1,4 +1,31 @@
 """
+Interaction Safety Agent — PharmAgent AI
+=========================================
+Checks a patient's active medications against a new prescription for
+drug interaction risks before dispensing.
+
+Responsibility:
+    Given an NHS number and a new medication name, this agent retrieves
+    the patient's active prescription history and applies AI reasoning
+    to identify contraindications, severity levels, and clinical
+    recommendations.
+
+Tools used:
+    - get_patient_by_nhs()       — retrieve patient record
+    - get_active_prescriptions() — fetch current medication list
+    - log_audit_entry()          — write action to audit trail
+
+Output:
+    A structured interaction report with risk level (LOW/MEDIUM/HIGH),
+    detected interactions, and a clinical recommendation. All reports
+    require pharmacist sign-off before dispensing action is taken.
+
+Data residency:
+    All patient data queried and processed within DataVita Scottish
+    infrastructure (NFR-01 compliant).
+"""
+
+"""
 Interaction Safety Agent
 Checks a patient's active prescriptions for drug interaction risks.
 Requires pharmacist approval before any dispensing action is taken.

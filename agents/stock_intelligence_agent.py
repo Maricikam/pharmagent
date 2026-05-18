@@ -1,4 +1,31 @@
 """
+Stock Intelligence Agent — PharmAgent AI
+==========================================
+Monitors pharmacy inventory, identifies supply risks, and automates
+supplier reorder workflows.
+
+Responsibility:
+    Reviews current stock levels against reorder thresholds, identifies
+    medications approaching expiry within a configurable window, and
+    triggers automated purchase orders with registered suppliers.
+
+Tools used:
+    - get_low_stock_items()      — medications below reorder threshold
+    - get_near_expiry_items()    — medications expiring within window
+    - place_supplier_order()     — trigger reorder with supplier API
+    - log_audit_entry()          — write action to audit trail
+
+Output:
+    A stock health summary including low-stock list, near-expiry items
+    with estimated waste value, and references for any auto-orders placed.
+
+Design note:
+    Follows the Observer pattern — reacts to inventory state rather than
+    polling on a fixed schedule. All reorder actions are logged for
+    regulatory audit compliance.
+"""
+
+"""
 Stock Intelligence Agent
 Reviews inventory, flags low stock and expiring medications,
 and triggers supplier reorder workflows.

@@ -1,4 +1,33 @@
 """
+Orchestrator Agent — PharmAgent AI
+=====================================
+Central coordinator that accepts plain-English intent from a pharmacist
+and delegates to the appropriate specialist agents.
+
+Responsibility:
+    Receives a natural language request (e.g. "good morning, run the
+    daily check"), interprets intent using Claude reasoning, decomposes
+    the task into sub-tasks, delegates to specialist agents, and
+    synthesises a unified response.
+
+Sub-agents coordinated:
+    - InteractionSafetyAgent  — drug interaction checking
+    - StockIntelligenceAgent  — inventory management and reordering
+    - PatientEngagementAgent  — refill reminder campaigns
+
+Design pattern:
+    Orchestrator pattern — single entry point for all pharmacy AI
+    requests. Maintains separation of concerns by delegating domain
+    logic entirely to specialist agents.
+
+OpenClaw integration:
+    This agent is the primary target of the pharmagent-morning-briefing
+    and pharmagent-interaction-check OpenClaw skills. Natural language
+    input from WhatsApp/Telegram is routed here via the FastAPI
+    /agents/orchestrate endpoint.
+"""
+
+"""
 Orchestrator Agent
 The top-level coordinator. Takes a plain English request from a pharmacist
 and decides which sub-agents to invoke, synthesises their outputs, and
