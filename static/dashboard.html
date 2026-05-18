@@ -101,9 +101,9 @@
     <div class="card">
       <div class="card-title"><i class="ti ti-shield-check"></i> Drug interaction checker</div>
       <label for="nhs-input">CHI number</label>
-      <input id="nhs-input" type="text" placeholder="e.g. 4823719056" value="4823719056">
+      <input id="nhs-input" type="text" placeholder="Enter CHI number">
       <label for="med-input">New medication to check</label>
-      <input id="med-input" type="text" placeholder="e.g. Ibuprofen" value="Ibuprofen">
+      <input id="med-input" type="text" placeholder="e.g. Ibuprofen">
       <button class="btn btn-primary" id="int-btn" onclick="runInteractionCheck()">
         <i class="ti ti-search"></i> Check interactions
       </button>
@@ -126,7 +126,7 @@
     <div class="card">
       <div class="card-title"><i class="ti ti-user"></i> Patient lookup</div>
       <label for="pat-nhs">CHI number</label>
-      <input id="pat-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
+      <input id="pat-nhs" type="text" placeholder="Enter CHI number">
       <button class="btn btn-primary" id="pat-btn" onclick="runPatientLookup()">
         <i class="ti ti-search"></i> Look up patient
       </button>
@@ -138,7 +138,7 @@
     <div class="card">
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
       <label for="eng-nhs">CHI number</label>
-      <input id="eng-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
+      <input id="eng-nhs" type="text" placeholder="Enter CHI number">
       <label for="eng-type">Campaign type</label>
       <select id="eng-type">
         <option value="refill_reminder">Refill reminder</option>
@@ -162,30 +162,22 @@ function inlineMd(text) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>');
 }
 
-function isTableLine(line) {
-  return line.trim().startsWith('|');
-}
+function isTableLine(line) { return line.trim().startsWith('|'); }
 
-// Replace all occurrences of "NHS" with "CHI" in any rendered text from the API
 function chiLabel(text) {
   if (!text) return text;
   return String(text).replace(/\bNHS\b/g, 'CHI');
 }
 
-// Show med name only — the dose is already embedded in the name (e.g. "Warfarin 5mg")
-// Just show frequency on the pill, skip the dose field entirely
 function formatMedPill(m) {
   const name = m.name || '';
   const freq = m.frequency || '';
-  // Extract just the schedule word(s): "Once daily", "Twice daily" etc.
-  // Strip anything that looks like a dosage amount from frequency
   const cleanFreq = freq.replace(/^\d+(\.\d+)?\s*(mg|mcg|g|ml|units?)\s*/i, '').trim();
   return cleanFreq ? `${name} · ${cleanFreq}` : name;
 }
 
 function renderClinicalText(text) {
   if (!text) return '';
-  // Replace NHS with CHI in the AI response text
   text = chiLabel(text);
   const lines = text.split('\n');
   let html = '';
@@ -198,34 +190,27 @@ function renderClinicalText(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-
     if (!trimmed) { closeAllLists(); continue; }
     if (trimmed === '---' || /^-{3,}$/.test(trimmed)) { closeAllLists(); html += '<hr>'; continue; }
     if (isTableLine(trimmed)) continue;
-
     if (/^#{1,3}\s/.test(trimmed)) {
       closeAllLists();
-      const headingText = trimmed.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1');
-      html += `<div class="c-section">${headingText}</div>`;
+      html += `<div class="c-section">${trimmed.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1')}</div>`;
       continue;
     }
-
     if (/^[-*•]\s/.test(trimmed)) {
       if (listStack[listStack.length - 1] !== 'ul') { closeAllLists(); html += '<ul>'; listStack.push('ul'); }
       html += `<li>${inlineMd(trimmed.replace(/^[-*•]\s+/, ''))}</li>`;
       continue;
     }
-
     if (/^\d+\.\s/.test(trimmed)) {
       if (listStack[listStack.length - 1] !== 'ol') { closeAllLists(); html += '<ol>'; listStack.push('ol'); }
       html += `<li>${inlineMd(trimmed.replace(/^\d+\.\s+/, ''))}</li>`;
       continue;
     }
-
     closeAllLists();
     html += `<p>${inlineMd(trimmed)}</p>`;
   }
-
   closeAllLists();
   return html;
 }
