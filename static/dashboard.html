@@ -100,7 +100,7 @@
   <div id="interaction" class="section active">
     <div class="card">
       <div class="card-title"><i class="ti ti-shield-check"></i> Drug interaction checker</div>
-      <label for="nhs-input">NHS number</label>
+      <label for="nhs-input">CHI number</label>
       <input id="nhs-input" type="text" placeholder="e.g. 4823719056" value="4823719056">
       <label for="med-input">New medication to check</label>
       <input id="med-input" type="text" placeholder="e.g. Ibuprofen" value="Ibuprofen">
@@ -125,7 +125,7 @@
   <div id="patient" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-user"></i> Patient lookup</div>
-      <label for="pat-nhs">NHS number</label>
+      <label for="pat-nhs">CHI number</label>
       <input id="pat-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
       <button class="btn btn-primary" id="pat-btn" onclick="runPatientLookup()">
         <i class="ti ti-search"></i> Look up patient
@@ -137,7 +137,7 @@
   <div id="engagement" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
-      <label for="eng-nhs">NHS number</label>
+      <label for="eng-nhs">CHI number</label>
       <input id="eng-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
       <label for="eng-type">Campaign type</label>
       <select id="eng-type">
@@ -166,30 +166,43 @@ function isTableLine(line) {
   return line.trim().startsWith('|');
 }
 
+// Replace all occurrences of "NHS" with "CHI" in any rendered text from the API
+function chiLabel(text) {
+  if (!text) return text;
+  return String(text).replace(/\bNHS\b/g, 'CHI');
+}
+
+// Show med name only — the dose is already embedded in the name (e.g. "Warfarin 5mg")
+// Just show frequency on the pill, skip the dose field entirely
+function formatMedPill(m) {
+  const name = m.name || '';
+  const freq = m.frequency || '';
+  // Extract just the schedule word(s): "Once daily", "Twice daily" etc.
+  // Strip anything that looks like a dosage amount from frequency
+  const cleanFreq = freq.replace(/^\d+(\.\d+)?\s*(mg|mcg|g|ml|units?)\s*/i, '').trim();
+  return cleanFreq ? `${name} · ${cleanFreq}` : name;
+}
+
 function renderClinicalText(text) {
   if (!text) return '';
+  // Replace NHS with CHI in the AI response text
+  text = chiLabel(text);
   const lines = text.split('\n');
   let html = '';
-  let listStack = [];   // track open list types: 'ul' or 'ol'
+  let listStack = [];
 
   function closeAllLists() {
-    while (listStack.length) {
-      html += `</${listStack.pop()}>`;
-    }
+    while (listStack.length) { html += `</${listStack.pop()}>`; }
   }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
-    // Skip blank lines and horizontal rules
     if (!trimmed) { closeAllLists(); continue; }
-    if (trimmed === '---' || trimmed.match(/^-{3,}$/)) { closeAllLists(); html += '<hr>'; continue; }
-
-    // Skip markdown table lines (pipes as table separators)
+    if (trimmed === '---' || /^-{3,}$/.test(trimmed)) { closeAllLists(); html += '<hr>'; continue; }
     if (isTableLine(trimmed)) continue;
 
-    // Headings — close lists, render as section label
     if (/^#{1,3}\s/.test(trimmed)) {
       closeAllLists();
       const headingText = trimmed.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1');
@@ -197,49 +210,24 @@ function renderClinicalText(text) {
       continue;
     }
 
-    // Bullet list items
     if (/^[-*•]\s/.test(trimmed)) {
-      if (listStack[listStack.length - 1] !== 'ul') {
-        closeAllLists();
-        html += '<ul>';
-        listStack.push('ul');
-      }
-      const itemText = trimmed.replace(/^[-*•]\s+/, '');
-      html += `<li>${inlineMd(itemText)}</li>`;
+      if (listStack[listStack.length - 1] !== 'ul') { closeAllLists(); html += '<ul>'; listStack.push('ul'); }
+      html += `<li>${inlineMd(trimmed.replace(/^[-*•]\s+/, ''))}</li>`;
       continue;
     }
 
-    // Numbered list items — treat ALL as flat ol, no nesting
     if (/^\d+\.\s/.test(trimmed)) {
-      if (listStack[listStack.length - 1] !== 'ol') {
-        closeAllLists();
-        html += '<ol>';
-        listStack.push('ol');
-      }
-      const itemText = trimmed.replace(/^\d+\.\s+/, '');
-      html += `<li>${inlineMd(itemText)}</li>`;
+      if (listStack[listStack.length - 1] !== 'ol') { closeAllLists(); html += '<ol>'; listStack.push('ol'); }
+      html += `<li>${inlineMd(trimmed.replace(/^\d+\.\s+/, ''))}</li>`;
       continue;
     }
 
-    // Regular paragraph
     closeAllLists();
     html += `<p>${inlineMd(trimmed)}</p>`;
   }
 
   closeAllLists();
   return html;
-}
-
-// Deduplicate dose info: "Warfarin 5mg" + dose "5mg" + freq "Once daily"
-// → show name + freq only if dose already appears in name
-function formatMedPill(m) {
-  const name = m.name || '';
-  const dose = m.dose || '';
-  const freq = m.frequency || '';
-  // If dose string already appears inside name, skip it
-  const showDose = dose && !name.toLowerCase().includes(dose.toLowerCase()) ? ` · ${dose}` : '';
-  const showFreq = freq ? ` · ${freq}` : '';
-  return `${name}${showDose}${showFreq}`;
 }
 
 function showTab(tab, btn) {
@@ -283,7 +271,7 @@ async function runInteractionCheck() {
         <div class="avatar">${initials}</div>
         <div>
           <div class="patient-name">${p.name}</div>
-          <div class="patient-meta">NHS: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div>
+          <div class="patient-meta">CHI: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div>
         </div>
         <span class="badge badge-${ir.risk_level === 'HIGH' ? 'high' : ir.risk_level === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">
           ${ir.risk_level} RISK
@@ -393,7 +381,7 @@ async function runPatientLookup() {
       <div class="avatar">${initials}</div>
       <div>
         <div class="patient-name">${p.name || 'Unknown'}</div>
-        <div class="patient-meta">NHS: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div>
+        <div class="patient-meta">CHI: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div>
       </div>
     </div>`;
     if (meds.length > 0) {
@@ -432,7 +420,7 @@ async function runEngagement() {
     const msg = data.message || data.campaign?.message || data.report?.message || JSON.stringify(data, null, 2);
     let html = '';
     if (patName) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;font-weight:500">Campaign generated for: <strong style="color:#1a1a2e">${patName}</strong></div>`;
-    html += `<div class="msg-box">${typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2)}</div>`;
+    html += `<div class="msg-box">${typeof msg === 'string' ? chiLabel(msg) : JSON.stringify(msg, null, 2)}</div>`;
     box.innerHTML = html;
   } catch(e) {
     box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Error generating engagement message.</p>';
