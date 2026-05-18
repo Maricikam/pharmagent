@@ -207,7 +207,7 @@ def interaction_check(req: InteractionCheckRequest):
                     {"name": p["medication"], "dose": p["dosage"], "frequency": p["frequency"]}
                     for p in prescriptions
                 ],
-                "new_medication_name": req.new_medication_name,
+                "new_medication": req.new_medication_name,
                 "interaction_report": {
                     "risk_level": "HIGH" if "CRITICAL" in result or "DO NOT" in result else "MODERATE" if "REVIEW" in result else "LOW",
                     "interactions_detected": [],
