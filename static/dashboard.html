@@ -38,7 +38,6 @@
   .badge-high { background: #fef2f2; color: #dc2626; }
   .badge-moderate { background: #fffbeb; color: #d97706; }
   .badge-low { background: #f0fdf4; color: #16a34a; }
-  .badge-info { background: #eff6ff; color: #2563eb; }
   .badge-active { background: #e6f7f1; color: #1D9E75; }
   .patient-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e9f0; }
   .avatar { width: 46px; height: 46px; border-radius: 50%; background: #e6f7f1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #1D9E75; flex-shrink: 0; }
@@ -55,10 +54,12 @@
   .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
   .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
   .clinical-box .clinical-header { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
-  .clinical-box .clinical-section-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 6px; opacity: 0.7; }
-  .clinical-box ul { padding-left: 18px; margin: 4px 0 8px; }
-  .clinical-box ul li { margin: 4px 0; line-height: 1.5; font-size: 13px; }
-  .clinical-box p { margin: 4px 0; line-height: 1.6; font-size: 13px; }
+  .clinical-box .c-section { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; margin: 14px 0 5px; opacity: 0.65; }
+  .clinical-box ul { padding-left: 16px; margin: 4px 0 8px; list-style: disc; }
+  .clinical-box ul li { margin: 5px 0; line-height: 1.55; font-size: 13px; }
+  .clinical-box ol { padding-left: 16px; margin: 4px 0 8px; list-style: decimal; }
+  .clinical-box ol li { margin: 5px 0; line-height: 1.55; font-size: 13px; }
+  .clinical-box p { margin: 5px 0; line-height: 1.6; font-size: 13px; }
   .clinical-box hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0; }
   .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f3f4f6; }
   .stock-row:last-child { border-bottom: none; }
@@ -155,52 +156,90 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
+function inlineMd(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function isTableLine(line) {
+  return line.trim().startsWith('|');
+}
+
 function renderClinicalText(text) {
   if (!text) return '';
   const lines = text.split('\n');
   let html = '';
-  let inList = false;
+  let listStack = [];   // track open list types: 'ul' or 'ol'
+
+  function closeAllLists() {
+    while (listStack.length) {
+      html += `</${listStack.pop()}>`;
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
-    if (!trimmed || trimmed === '---') {
-      if (inList) { html += '</ul>'; inList = false; }
-      if (trimmed === '---') html += '<hr>';
+    // Skip blank lines and horizontal rules
+    if (!trimmed) { closeAllLists(); continue; }
+    if (trimmed === '---' || trimmed.match(/^-{3,}$/)) { closeAllLists(); html += '<hr>'; continue; }
+
+    // Skip markdown table lines (pipes as table separators)
+    if (isTableLine(trimmed)) continue;
+
+    // Headings — close lists, render as section label
+    if (/^#{1,3}\s/.test(trimmed)) {
+      closeAllLists();
+      const headingText = trimmed.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1');
+      html += `<div class="c-section">${headingText}</div>`;
       continue;
     }
 
-    const cleaned = trimmed
-      .replace(/^#+\s*/, '')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    if (/^#+\s/.test(line)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<div class="clinical-section-title">${cleaned}</div>`;
-    } else if (/^[-•]\s/.test(trimmed)) {
-      if (!inList) { html += '<ul>'; inList = true; }
-      const itemText = trimmed.replace(/^[-•]\s+/, '')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>');
-      html += `<li>${itemText}</li>`;
-    } else if (/^\d+\.\s/.test(trimmed)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      if (!html.includes('<ol>') || html.lastIndexOf('</ol>') > html.lastIndexOf('<ol>')) {
-        html += '<ol style="padding-left:18px;margin:4px 0 8px">';
-        inList = true;
+    // Bullet list items
+    if (/^[-*•]\s/.test(trimmed)) {
+      if (listStack[listStack.length - 1] !== 'ul') {
+        closeAllLists();
+        html += '<ul>';
+        listStack.push('ul');
       }
-      const itemText = trimmed.replace(/^\d+\.\s+/, '')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      html += `<li style="margin:4px 0;font-size:13px;line-height:1.5">${itemText}</li>`;
-    } else {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<p>${cleaned}</p>`;
+      const itemText = trimmed.replace(/^[-*•]\s+/, '');
+      html += `<li>${inlineMd(itemText)}</li>`;
+      continue;
     }
+
+    // Numbered list items — treat ALL as flat ol, no nesting
+    if (/^\d+\.\s/.test(trimmed)) {
+      if (listStack[listStack.length - 1] !== 'ol') {
+        closeAllLists();
+        html += '<ol>';
+        listStack.push('ol');
+      }
+      const itemText = trimmed.replace(/^\d+\.\s+/, '');
+      html += `<li>${inlineMd(itemText)}</li>`;
+      continue;
+    }
+
+    // Regular paragraph
+    closeAllLists();
+    html += `<p>${inlineMd(trimmed)}</p>`;
   }
-  if (inList) html += '</ul>';
+
+  closeAllLists();
   return html;
+}
+
+// Deduplicate dose info: "Warfarin 5mg" + dose "5mg" + freq "Once daily"
+// → show name + freq only if dose already appears in name
+function formatMedPill(m) {
+  const name = m.name || '';
+  const dose = m.dose || '';
+  const freq = m.frequency || '';
+  // If dose string already appears inside name, skip it
+  const showDose = dose && !name.toLowerCase().includes(dose.toLowerCase()) ? ` · ${dose}` : '';
+  const showFreq = freq ? ` · ${freq}` : '';
+  return `${name}${showDose}${showFreq}`;
 }
 
 function showTab(tab, btn) {
@@ -212,13 +251,8 @@ function showTab(tab, btn) {
 
 function setLoading(btnId, loading, originalHTML) {
   const btn = document.getElementById(btnId);
-  if (loading) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Running...';
-  } else {
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
+  if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Running...'; }
+  else { btn.disabled = false; btn.innerHTML = originalHTML; }
 }
 
 async function runInteractionCheck() {
@@ -256,7 +290,7 @@ async function runInteractionCheck() {
         </span>
       </div>
       <div class="section-label">Current medications</div>
-      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} · ${m.dose}${m.frequency ? ' · ' + m.frequency : ''}</span>`).join('')}</div>
+      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${formatMedPill(m)}</span>`).join('')}</div>
       <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
 
     if (ir.interactions_detected.length > 0) {
