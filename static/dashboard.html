@@ -51,9 +51,15 @@
   .interaction-drugs { font-weight: 600; font-size: 14px; color: #1a1a2e; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
   .interaction-mech { font-size: 13px; color: #6b7280; margin-bottom: 7px; line-height: 1.5; }
   .interaction-rec { font-size: 13px; color: #374151; font-weight: 500; }
-  .clinical-box { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
-  .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+  .clinical-box { margin-top: 14px; padding: 16px 18px; border-radius: 8px; font-size: 14px; }
+  .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+  .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+  .clinical-box .clinical-header { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
+  .clinical-box .clinical-section-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 6px; opacity: 0.7; }
+  .clinical-box ul { padding-left: 18px; margin: 4px 0 8px; }
+  .clinical-box ul li { margin: 4px 0; line-height: 1.5; font-size: 13px; }
+  .clinical-box p { margin: 4px 0; line-height: 1.6; font-size: 13px; }
+  .clinical-box hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0; }
   .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f3f4f6; }
   .stock-row:last-child { border-bottom: none; }
   .stock-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
@@ -90,7 +96,6 @@
     <button class="nav-btn" onclick="showTab('engagement', this)"><i class="ti ti-mail"></i> Engagement</button>
   </nav>
 
-  <!-- INTERACTION CHECK -->
   <div id="interaction" class="section active">
     <div class="card">
       <div class="card-title"><i class="ti ti-shield-check"></i> Drug interaction checker</div>
@@ -105,7 +110,6 @@
     <div class="result-box" id="int-result"></div>
   </div>
 
-  <!-- STOCK -->
   <div id="stock" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-box"></i> Stock intelligence</div>
@@ -117,7 +121,6 @@
     <div class="result-box" id="stock-result"></div>
   </div>
 
-  <!-- PATIENT -->
   <div id="patient" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-user"></i> Patient lookup</div>
@@ -130,7 +133,6 @@
     <div class="result-box" id="pat-result"></div>
   </div>
 
-  <!-- ENGAGEMENT -->
   <div id="engagement" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
@@ -152,6 +154,54 @@
 
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
+
+function renderClinicalText(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed === '---') {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (trimmed === '---') html += '<hr>';
+      continue;
+    }
+
+    const cleaned = trimmed
+      .replace(/^#+\s*/, '')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    if (/^#+\s/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div class="clinical-section-title">${cleaned}</div>`;
+    } else if (/^[-•]\s/.test(trimmed)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      const itemText = trimmed.replace(/^[-•]\s+/, '')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html += `<li>${itemText}</li>`;
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (!html.includes('<ol>') || html.lastIndexOf('</ol>') > html.lastIndexOf('<ol>')) {
+        html += '<ol style="padding-left:18px;margin:4px 0 8px">';
+        inList = true;
+      }
+      const itemText = trimmed.replace(/^\d+\.\s+/, '')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html += `<li style="margin:4px 0;font-size:13px;line-height:1.5">${itemText}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p>${cleaned}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
 
 function showTab(tab, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -193,6 +243,7 @@ async function runInteractionCheck() {
     const initials = p.name.split(' ').map(n => n[0]).join('');
     const isHigh = ir.risk_level === 'HIGH';
     const isSafe = !isHigh && ir.interactions_detected.length === 0;
+
     let html = `
       <div class="patient-row">
         <div class="avatar">${initials}</div>
@@ -205,8 +256,9 @@ async function runInteractionCheck() {
         </span>
       </div>
       <div class="section-label">Current medications</div>
-      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} ${m.dose}</span>`).join('')}</div>
+      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} · ${m.dose}${m.frequency ? ' · ' + m.frequency : ''}</span>`).join('')}</div>
       <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
+
     if (ir.interactions_detected.length > 0) {
       ir.interactions_detected.forEach(i => {
         const cls = i.severity === 'Major' ? '' : 'moderate';
@@ -220,13 +272,22 @@ async function runInteractionCheck() {
           <div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div>
         </div>`;
       });
-    } else {
+    } else if (!ir.clinical_decision) {
       html += `<div class="empty-state"><i class="ti ti-circle-check"></i>No interactions detected</div>`;
     }
-    html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}">
-      <i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}"></i>
-      ${ir.clinical_decision}
-    </div>`;
+
+    if (ir.clinical_decision) {
+      const iconName = isSafe ? 'circle-check' : 'alert-circle';
+      const boxClass = isSafe ? 'clinical-safe' : 'clinical-danger';
+      html += `<div class="clinical-box ${boxClass}">
+        <div class="clinical-header">
+          <i class="ti ti-${iconName}" style="font-size:16px;flex-shrink:0"></i>
+          ${isSafe ? 'No significant interactions' : 'Pharmacist review required'}
+        </div>
+        ${renderClinicalText(ir.clinical_decision)}
+      </div>`;
+    }
+
     html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
   } catch(e) {
