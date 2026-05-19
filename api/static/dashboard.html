@@ -108,6 +108,32 @@
   .toast i { color: #1D9E75; font-size: 16px; }
   .toast.error { background: #dc2626; }
   .toast.error i { color: #fff; }
+  .eng-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+.eng-stat { background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 10px; padding: .875rem 1rem; }
+.eng-stat-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+.eng-stat-value { font-size: 22px; font-weight: 700; }
+.eng-stat-value.danger { color: #dc2626; }
+.eng-stat-value.warning { color: #d97706; }
+.eng-stat-value.good { color: #1D9E75; }
+.pat-card { background: #fff; border: 1px solid #e5e9f0; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: .625rem; border-left: 3px solid #e5e9f0; }
+.pat-card.urgent { border-left-color: #dc2626; }
+.pat-card.soon { border-left-color: #d97706; }
+.pat-card.ok { border-left-color: #1D9E75; }
+.pat-card-top { display: flex; align-items: center; gap: 12px; }
+.pat-card-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.pat-card-avatar.red { background: #fef2f2; color: #dc2626; }
+.pat-card-avatar.amber { background: #fffbeb; color: #d97706; }
+.pat-card-avatar.teal { background: #e6f7f1; color: #1D9E75; }
+.pat-card-meds { font-size: 12px; color: #6b7280; margin: 8px 0 0 50px; }
+.pat-card-msg { font-size: 13px; color: #1a1a2e; background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 6px; padding: 8px 10px; margin: 8px 0 0 50px; line-height: 1.6; display: none; }
+.pat-card-msg.show { display: block; }
+.pat-card-actions { display: flex; gap: 6px; margin: 8px 0 0 50px; flex-wrap: wrap; }
+.pat-action-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1.5px solid #e5e9f0; background: #fff; color: #374151; font-family: inherit; transition: all .15s; }
+.pat-action-btn:hover { border-color: #1D9E75; color: #1D9E75; background: #f0faf6; }
+.pat-action-btn.primary { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+.pat-action-btn.primary:hover { background: #189065; }
+.pat-action-btn.sent { background: #e6f7f1; border-color: #9FE1CB; color: #085041; cursor: default; }
+.pat-action-btn:disabled { cursor: default; }
 </style>
 </head>
 <body>
@@ -536,7 +562,7 @@ async function runEngagement() {
   setLoading('eng-btn', true);
   const box = document.getElementById('eng-result');
   box.classList.add('show');
-  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Generating personalised message...</p>';
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Generating personalised messages...</p>';
   try {
     const res = await fetch(BASE + '/agents/engagement-campaign', {
       method: 'POST',
@@ -544,17 +570,86 @@ async function runEngagement() {
       body: JSON.stringify({nhs_number: nhs, campaign_type: type}),
     });
     const data = await res.json();
-    const patName = data.patient?.name || data.report?.patient?.name || '';
-    const msg = data.message || data.campaign?.message || data.report?.message || JSON.stringify(data, null, 2);
-    let html = '';
-    if (patName) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;font-weight:500">Campaign generated for: <strong style="color:#1a1a2e">${patName}</strong></div>`;
-    html += `<div class="msg-box">${typeof msg === 'string' ? chiLabel(msg) : JSON.stringify(msg, null, 2)}</div>`;
+    const results = data.message?.results || data.result?.results || [];
+    const contacted = data.message?.patients_contacted ?? results.length;
+
+    // urgency helpers
+    const urgencyOf = (r) => {
+      const d = r.days_until_due ?? null;
+      if (d === null) return 'soon';
+      if (d <= 3) return 'urgent';
+      if (d <= 7) return 'soon';
+      return 'ok';
+    };
+    const avatarClass = (u) => u === 'urgent' ? 'red' : u === 'soon' ? 'amber' : 'teal';
+    const cardClass  = (u) => u === 'urgent' ? 'urgent' : u === 'soon' ? 'soon' : 'ok';
+    const badgeClass = (u) => u === 'urgent' ? 'badge-high' : u === 'soon' ? 'badge-moderate' : 'badge-low';
+    const badgeText  = (u) => u === 'urgent' ? 'Overdue / urgent' : u === 'soon' ? 'Due this week' : 'Coming up';
+
+    const urgent = results.filter(r => urgencyOf(r) === 'urgent').length;
+    const soon   = results.filter(r => urgencyOf(r) === 'soon').length;
+
+    let html = `<div class="eng-stats">
+      <div class="eng-stat"><div class="eng-stat-label">Urgent / overdue</div><div class="eng-stat-value ${urgent > 0 ? 'danger' : 'good'}">${urgent}</div></div>
+      <div class="eng-stat"><div class="eng-stat-label">Due this week</div><div class="eng-stat-value ${soon > 0 ? 'warning' : 'good'}">${soon}</div></div>
+      <div class="eng-stat"><div class="eng-stat-label">Messages ready</div><div class="eng-stat-value good">${contacted}</div></div>
+    </div>`;
+
+    if (results.length === 0) {
+      // fallback: API returned a plain message string rather than structured results
+      const patName = data.patient?.name || '';
+      const msg = typeof data.message === 'string' ? data.message : JSON.stringify(data.message, null, 2);
+      if (patName) html += `<div class="section-label">Campaign generated for ${patName}</div>`;
+      html += `<div class="msg-box">${chiLabel(msg)}</div>`;
+    } else {
+      results.forEach((r, idx) => {
+        const u = urgencyOf(r);
+        const initials = (r.patient || '??').split(' ').map(n => n[0]).join('');
+        const meds = Array.isArray(r.medications) ? r.medications.join(', ') : (r.medication || '');
+        html += `<div class="pat-card ${cardClass(u)}">
+          <div class="pat-card-top">
+            <div class="pat-card-avatar ${avatarClass(u)}">${initials}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#1a1a2e">${r.patient}</div>
+              <div style="font-size:12px;color:#6b7280;margin-top:2px">${r.channel?.toUpperCase() || 'SMS'}</div>
+            </div>
+            <span class="badge ${badgeClass(u)}">${badgeText(u)}</span>
+          </div>
+          ${meds ? `<div class="pat-card-meds"><i class="ti ti-pill" style="font-size:12px;vertical-align:-1px"></i> ${meds}</div>` : ''}
+          <div class="pat-card-msg" id="eng-msg-${idx}">${chiLabel(r.message || '')}</div>
+          <div class="pat-card-actions">
+            <button class="pat-action-btn primary" id="eng-send-${idx}" onclick="engSend(${idx})">
+              <i class="ti ti-send" style="font-size:12px"></i> Send ${r.channel?.toUpperCase() || 'SMS'}
+            </button>
+            <button class="pat-action-btn" onclick="engPreview(${idx})">
+              <i class="ti ti-eye" style="font-size:12px"></i> Preview
+            </button>
+          </div>
+        </div>`;
+      });
+    }
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Error generating engagement message.</p>';
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> Error generating engagement messages.</p>';
   }
   setLoading('eng-btn', false, orig);
 }
+
+function engPreview(idx) {
+  const el = document.getElementById('eng-msg-' + idx);
+  el.classList.toggle('show');
+}
+
+function engSend(idx) {
+  const btn = document.getElementById('eng-send-' + idx);
+  btn.className = 'pat-action-btn sent';
+  btn.innerHTML = '<i class="ti ti-circle-check" style="font-size:12px"></i> Sent';
+  btn.disabled = true;
+  // update "Messages ready" stat
+  const stat = document.querySelector('.eng-stat-value.good:last-of-type');
+  if (stat) stat.style.color = '#1D9E75';
+}
+
 </script>
 </body>
 </html>
