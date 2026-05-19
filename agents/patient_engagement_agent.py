@@ -67,6 +67,7 @@ Due date: {next_due}
 Channel: {channel} ({'max 160 characters' if channel == 'sms' else 'short friendly email'})
 
 Write a {channel} refill reminder for this patient.
+Return ONLY the message text itself — no preamble, no markdown, no character count, no "Here's an SMS..." introduction. Just the message the patient would receive.
 """
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -75,7 +76,6 @@ Write a {channel} refill reminder for this patient.
         messages=[{"role": "user", "content": prompt}],
     )
     return response.content[0].text.strip()
-
 
 def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms") -> dict:
     """

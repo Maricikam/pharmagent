@@ -27,6 +27,8 @@ Data residency:
 
 import sys
 import os
+
+from click import prompt
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import anthropic
@@ -204,9 +206,12 @@ Please analyse the active medications{f' against the new medication ({new_medica
 
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=1500,
+        max_tokens=300,
         system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": context}],
+        messages=[
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": ""},  # prime it to start the message directly
+        ],
     )
 
     result = response.content[0].text
