@@ -77,6 +77,37 @@
   .msg-box { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; color: #1a1a2e; white-space: pre-wrap; }
   .empty-state { text-align: center; padding: 2rem; color: #6b7280; font-size: 14px; }
   .empty-state i { font-size: 32px; color: #1D9E75; display: block; margin-bottom: 8px; }
+
+  /* Reorder button */
+  .reorder-btn { background: none; border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: #dc2626; padding: 4px 10px; border-radius: 6px; transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+  .reorder-btn:hover:not(:disabled) { background: #fef2f2; }
+  .reorder-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+  .reorder-btn.ordered { color: #1D9E75; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 14px; padding: 1.75rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.18); }
+  .modal-title { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .modal-title i { color: #1D9E75; font-size: 18px; }
+  .modal-sub { font-size: 13px; color: #6b7280; margin-bottom: 1.25rem; line-height: 1.5; }
+  .modal-detail { background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 1.25rem; }
+  .modal-detail-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+  .modal-detail-label { color: #6b7280; }
+  .modal-detail-value { font-weight: 600; color: #1a1a2e; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-cancel { padding: 9px 18px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; transition: border-color 0.15s; }
+  .modal-cancel:hover { border-color: #9ca3af; }
+  .modal-confirm { padding: 9px 18px; border-radius: 8px; background: #1D9E75; color: #fff; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; display: inline-flex; align-items: center; gap: 7px; transition: background 0.15s; }
+  .modal-confirm:hover { background: #189065; }
+  .modal-confirm:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1a1a2e; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 200; transform: translateY(80px); opacity: 0; transition: all 0.25s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast i { color: #1D9E75; font-size: 16px; }
+  .toast.error { background: #dc2626; }
+  .toast.error i { color: #fff; }
 </style>
 </head>
 <body>
@@ -86,6 +117,32 @@
   <span class="topbar-title">PharmAgent AI</span>
   <span class="topbar-sub">— Pharmacy Management</span>
   <span class="topbar-badge"><i class="ti ti-circle-check" style="font-size:13px;vertical-align:-1px"></i> Live AI</span>
+</div>
+
+<!-- Reorder modal -->
+<div class="modal-overlay" id="reorder-modal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-truck-delivery"></i> Confirm reorder</div>
+    <div class="modal-sub">This order will be placed with the supplier and logged to the audit trail.</div>
+    <div class="modal-detail">
+      <div class="modal-detail-row"><span class="modal-detail-label">Medication</span><span class="modal-detail-value" id="modal-med">—</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Quantity</span><span class="modal-detail-value" id="modal-qty">—</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Supplier</span><span class="modal-detail-value" id="modal-supplier">—</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Est. delivery</span><span class="modal-detail-value">2 working days</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" id="modal-confirm-btn" onclick="confirmReorder()">
+        <i class="ti ti-check"></i> Place order
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <i class="ti ti-circle-check"></i>
+  <span id="toast-msg">Order placed successfully</span>
 </div>
 
 <div class="main">
@@ -155,66 +212,92 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
+// ── Helpers ────────────────────────────────────────────────────────────────
 function getMedName(item) {
   return item.name || item.medication_name || item.medication || 'Unknown';
 }
-
 function getMedQuantity(item) {
   return item.current_stock ?? item.quantity ?? item.quantity_remaining ?? '';
 }
-
 function getExpiryDate(item) {
-  return item.expiry_date || item.expiry || item.expiry_date_formatted || 'N/A';
+  return item.expiry_date || item.expiry || 'N/A';
+}
+function getReorderQty(item) {
+  return item.reorder_quantity || item.reorder_threshold || 100;
+}
+function getSupplier(item) {
+  return item.supplier || 'Alliance Healthcare';
 }
 
-function renderClinicalText(text) {
-  if (!text) return '';
-  const lines = text.split('\n');
-  let html = '';
-  let inList = false;
+// ── Reorder modal ──────────────────────────────────────────────────────────
+let pendingReorder = null;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
+function handleReorderClick(idx) {
+  const item = window._lowStockItems[idx];
+  const btnEl = document.getElementById('reorder-btn-' + idx);
+  pendingReorder = {
+    medication_name: getMedName(item),
+    quantity: getReorderQty(item),
+    supplier: getSupplier(item),
+    btnEl,
+  };
+  document.getElementById('modal-med').textContent = pendingReorder.medication_name;
+  document.getElementById('modal-qty').textContent = pendingReorder.quantity + ' units';
+  document.getElementById('modal-supplier').textContent = pendingReorder.supplier;
+  document.getElementById('reorder-modal').classList.add('show');
+}
 
-    if (!trimmed || trimmed === '---') {
-      if (inList) { html += '</ul>'; inList = false; }
-      if (trimmed === '---') html += '<hr>';
-      continue;
+function closeModal() {
+  document.getElementById('reorder-modal').classList.remove('show');
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-check"></i> Place order';
+  pendingReorder = null;
+}
+
+document.getElementById('reorder-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+async function confirmReorder() {
+  if (!pendingReorder) return;
+  const confirmBtn = document.getElementById('modal-confirm-btn');
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<span class="spinner"></span> Placing...';
+  try {
+    const res = await fetch(BASE + '/stock/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        medication_name: pendingReorder.medication_name,
+        quantity: pendingReorder.quantity,
+        supplier: pendingReorder.supplier,
+      })
+    });
+    const data = await res.json();
+    if (pendingReorder.btnEl) {
+      pendingReorder.btnEl.disabled = true;
+      pendingReorder.btnEl.classList.add('ordered');
+      pendingReorder.btnEl.innerHTML = '<i class="ti ti-circle-check" style="font-size:12px"></i> Ordered';
     }
-
-    const cleaned = trimmed
-      .replace(/^#+\s*/, '')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    if (/^#+\s/.test(line)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<div class="clinical-section-title">${cleaned}</div>`;
-    } else if (/^[-•]\s/.test(trimmed)) {
-      if (!inList) { html += '<ul>'; inList = true; }
-      const itemText = trimmed.replace(/^[-•]\s+/, '')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>');
-      html += `<li>${itemText}</li>`;
-    } else if (/^\d+\.\s/.test(trimmed)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      if (!html.includes('<ol>') || html.lastIndexOf('</ol>') > html.lastIndexOf('<ol>')) {
-        html += '<ol style="padding-left:18px;margin:4px 0 8px">';
-        inList = true;
-      }
-      const itemText = trimmed.replace(/^\d+\.\s+/, '')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      html += `<li style="margin:4px 0;font-size:13px;line-height:1.5">${itemText}</li>`;
-    } else {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<p>${cleaned}</p>`;
-    }
+    closeModal();
+    showToast('Order placed — Ref: ' + (data.reference || 'confirmed'));
+  } catch(e) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<i class="ti ti-check"></i> Place order';
+    showToast('Failed to place order. Please try again.', true);
   }
-  if (inList) html += '</ul>';
-  return html;
 }
 
+function showToast(msg, isError = false) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  toast.className = 'toast' + (isError ? ' error' : '');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────
 function showTab(tab, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -224,15 +307,44 @@ function showTab(tab, btn) {
 
 function setLoading(btnId, loading, originalHTML) {
   const btn = document.getElementById(btnId);
-  if (loading) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Running...';
-  } else {
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
+  if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Running...'; }
+  else { btn.disabled = false; btn.innerHTML = originalHTML; }
 }
 
+function renderClinicalText(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === '---') {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (trimmed === '---') html += '<hr>';
+      continue;
+    }
+    const cleaned = trimmed.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+    if (/^#+\s/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div class="clinical-section-title">${cleaned}</div>`;
+    } else if (/^[-•]\s/.test(trimmed)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${trimmed.replace(/^[-•]\s+/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')}</li>`;
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (!html.includes('<ol>') || html.lastIndexOf('</ol>') > html.lastIndexOf('<ol>')) { html += '<ol style="padding-left:18px;margin:4px 0 8px">'; inList = true; }
+      html += `<li style="margin:4px 0;font-size:13px;line-height:1.5">${trimmed.replace(/^\d+\.\s+/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p>${cleaned}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+// ── Agent calls ────────────────────────────────────────────────────────────
 async function runInteractionCheck() {
   const nhs = document.getElementById('nhs-input').value.trim();
   const med = document.getElementById('med-input').value.trim();
@@ -244,8 +356,7 @@ async function runInteractionCheck() {
   box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Checking interactions with AI agent...</p>';
   try {
     const res = await fetch(BASE + '/agents/interaction-check', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({nhs_number: nhs, new_medication_name: med})
     });
     const data = await res.json();
@@ -255,55 +366,30 @@ async function runInteractionCheck() {
     const initials = p.name.split(' ').map(n => n[0]).join('');
     const isHigh = ir.risk_level === 'HIGH';
     const isSafe = !isHigh && ir.interactions_detected.length === 0;
-
     let html = `
       <div class="patient-row">
         <div class="avatar">${initials}</div>
-        <div>
-          <div class="patient-name">${p.name}</div>
-          <div class="patient-meta">NHS: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div>
-        </div>
-        <span class="badge badge-${ir.risk_level === 'HIGH' ? 'high' : ir.risk_level === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">
-          ${ir.risk_level} RISK
-        </span>
+        <div><div class="patient-name">${p.name}</div><div class="patient-meta">NHS: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div></div>
+        <span class="badge badge-${ir.risk_level === 'HIGH' ? 'high' : ir.risk_level === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">${ir.risk_level} RISK</span>
       </div>
       <div class="section-label">Current medications</div>
       <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} · ${m.dose}${m.frequency ? ' · ' + m.frequency : ''}</span>`).join('')}</div>
       <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
-
     if (ir.interactions_detected.length > 0) {
       ir.interactions_detected.forEach(i => {
         const cls = i.severity === 'Major' ? '' : 'moderate';
-        html += `<div class="interaction-item ${cls}">
-          <div class="interaction-drugs">
-            <i class="ti ti-alert-triangle" style="color:${cls ? '#d97706' : '#dc2626'}"></i>
-            ${i.drug_a} + ${i.drug_b}
-            <span class="badge badge-${i.severity === 'Major' ? 'high' : 'moderate'}">${i.severity}</span>
-          </div>
-          <div class="interaction-mech">${i.mechanism}</div>
-          <div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div>
-        </div>`;
+        html += `<div class="interaction-item ${cls}"><div class="interaction-drugs"><i class="ti ti-alert-triangle" style="color:${cls ? '#d97706' : '#dc2626'}"></i>${i.drug_a} + ${i.drug_b}<span class="badge badge-${i.severity === 'Major' ? 'high' : 'moderate'}">${i.severity}</span></div><div class="interaction-mech">${i.mechanism}</div><div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div></div>`;
       });
     } else if (!ir.clinical_decision) {
       html += `<div class="empty-state"><i class="ti ti-circle-check"></i>No interactions detected</div>`;
     }
-
     if (ir.clinical_decision) {
-      const iconName = isSafe ? 'circle-check' : 'alert-circle';
-      const boxClass = isSafe ? 'clinical-safe' : 'clinical-danger';
-      html += `<div class="clinical-box ${boxClass}">
-        <div class="clinical-header">
-          <i class="ti ti-${iconName}" style="font-size:16px;flex-shrink:0"></i>
-          ${isSafe ? 'No significant interactions' : 'Pharmacist review required'}
-        </div>
-        ${renderClinicalText(ir.clinical_decision)}
-      </div>`;
+      html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}"><div class="clinical-header"><i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}" style="font-size:16px;flex-shrink:0"></i>${isSafe ? 'No significant interactions' : 'Pharmacist review required'}</div>${renderClinicalText(ir.clinical_decision)}</div>`;
     }
-
     html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> Error connecting to PharmAgent API. Please try again.</p>';
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> Error connecting to PharmAgent API.</p>';
   }
   setLoading('int-btn', false, orig);
 }
@@ -321,34 +407,41 @@ async function runStockReview() {
     ]);
     const low = lowRes.low_stock || lowRes.items || [];
     const exp = expRes.expiring_stock || expRes.items || [];
+    window._lowStockItems = low;
+
     let html = `<div class="stat-grid">
       <div class="stat"><div class="stat-label">Low stock items</div><div class="stat-value ${low.length > 0 ? 'danger' : 'good'}">${low.length}</div></div>
       <div class="stat"><div class="stat-label">Expiring soon</div><div class="stat-value ${exp.length > 0 ? 'warning' : 'good'}">${exp.length}</div></div>
     </div>`;
+
     if (low.length > 0) {
       html += '<div class="section-label">Low stock — reorder needed</div>';
-      low.forEach(item => {
+      low.forEach((item, idx) => {
         html += `<div class="stock-row">
           <div>
             <div class="stock-name">${getMedName(item)}</div>
-            <div class="stock-detail">${getMedQuantity(item)} units remaining</div>
+            <div class="stock-detail">${getMedQuantity(item)} units remaining &nbsp;·&nbsp; Reorder qty: ${getReorderQty(item)}</div>
           </div>
-          <span class="badge badge-high">Reorder</span>
+          <button class="reorder-btn" id="reorder-btn-${idx}" onclick="handleReorderClick(${idx})">
+            <i class="ti ti-truck-delivery" style="font-size:12px"></i> Reorder
+          </button>
         </div>`;
       });
     }
+
     if (exp.length > 0) {
       html += '<div class="section-label" style="margin-top:16px">Expiring within 30 days</div>';
       exp.forEach(item => {
         html += `<div class="stock-row">
           <div>
             <div class="stock-name">${getMedName(item)}</div>
-            <div class="stock-detail">Expires: ${getExpiryDate(item)}</div>
+            <div class="stock-detail">Expires: ${getExpiryDate(item)}${item.estimated_waste ? ' &nbsp;·&nbsp; Est. waste: £' + item.estimated_waste : ''}</div>
           </div>
           <span class="badge badge-moderate">Expiring</span>
         </div>`;
       });
     }
+
     if (low.length === 0 && exp.length === 0) {
       html += '<div class="empty-state"><i class="ti ti-circle-check"></i>All stock levels are healthy</div>';
     }
@@ -373,20 +466,11 @@ async function runPatientLookup() {
     const p = data.patient || data;
     const meds = p.active_medications || p.medications || [];
     const initials = (p.name || 'XX').split(' ').map(n => n[0]).join('');
-    let html = `<div class="patient-row">
-      <div class="avatar">${initials}</div>
-      <div>
-        <div class="patient-name">${p.name || 'Unknown'}</div>
-        <div class="patient-meta">NHS: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div>
-      </div>
-    </div>`;
+    let html = `<div class="patient-row"><div class="avatar">${initials}</div><div><div class="patient-name">${p.name || 'Unknown'}</div><div class="patient-meta">NHS: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div></div></div>`;
     if (meds.length > 0) {
       html += '<div class="section-label">Active medications</div>';
       meds.forEach(m => {
-        html += `<div class="stock-row">
-          <div><div class="stock-name">${m.name}</div><div class="stock-detail">${m.dose} · ${m.frequency}</div></div>
-          <span class="badge badge-active">Active</span>
-        </div>`;
+        html += `<div class="stock-row"><div><div class="stock-name">${m.name}</div><div class="stock-detail">${m.dose} · ${m.frequency}</div></div><span class="badge badge-active">Active</span></div>`;
       });
     }
     box.innerHTML = html;
@@ -407,8 +491,7 @@ async function runEngagement() {
   box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Generating personalised message...</p>';
   try {
     const res = await fetch(BASE + '/agents/engagement-campaign', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({nhs_number: nhs, campaign_type: type})
     });
     const data = await res.json();

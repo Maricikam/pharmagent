@@ -168,6 +168,7 @@ def expiring_stock(days: int = 30):
         }
 
 
+
 class InteractionCheckRequest(BaseModel):
     nhs_number: str
     new_medication_name: str
@@ -181,6 +182,23 @@ class EngagementRequest(BaseModel):
 class OrchestrateRequest(BaseModel):
     intent: str
 
+class ReorderRequest(BaseModel):
+    medication_name: str
+    quantity: int
+    supplier: str
+
+@app.post("/stock/reorder", tags=["Stock"])
+def reorder_stock(req: ReorderRequest):
+    try:
+        from tools.pharmacy_tools import place_reorder
+        result = place_reorder(
+            medication_name=req.medication_name,
+            quantity=req.quantity,
+            supplier=req.supplier,
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/interaction-check", tags=["Agents"])
 def interaction_check(req: InteractionCheckRequest):
