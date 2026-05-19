@@ -252,27 +252,14 @@ def stock_review():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/agents/engagement-campaign")
+@app.post("/agents/engagement-campaign", tags=["Agents"])
 def engagement_campaign(req: EngagementRequest):
-    # remove the patient lookup, just run the campaign
-    result = run_engagement_campaign(days_ahead=7, channel="sms", campaign_type=req.campaign_type)
-    return {"mode": "live", "message": result}
-
+    if not _has_api_key():
+        return {"mode": "demo", "result": demo()["agents"]["patient_engagement_agent"]}
     try:
-        from tools.pharmacy_tools import get_patient_by_nhs
         from agents.patient_engagement_agent import run_engagement_campaign
-        patient = get_patient_by_nhs(req.nhs_number)
-
-        # Map campaign_type to a channel — agent uses days_ahead + channel
-        channel = "sms"  # or derive from campaign_type if needed
-        result = run_engagement_campaign(days_ahead=7, channel=channel)
-
-        return {
-            "mode": "live",
-            "patient": {"name": patient.get("name", "Patient"), "nhs_number": req.nhs_number},
-            "campaign_type": req.campaign_type,
-            "message": result,
-        }
+        result = run_engagement_campaign(days_ahead=7, channel="sms", campaign_type=req.campaign_type)
+        return {"mode": "live", "message": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
