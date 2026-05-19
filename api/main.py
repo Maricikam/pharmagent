@@ -21,7 +21,7 @@ app = FastAPI(
     description=(
         "Intelligent Agent System for Pharmacy Management. "
         "Built for the DataVita OpenClaw Challenge. "
-        "HND Software Development — New College Lanarkshire.\n\n"
+        "PharmAgent AI integrates multiple specialized agents to assist pharmacists with medication safety, stock management, and patient engagement. "
         "**Quick links:** [/demo](/demo) · [/health](/health) · [GitHub](https://github.com/Maricikam/pharmagent)"
     ),
     version="1.0.0",

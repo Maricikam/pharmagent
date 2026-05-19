@@ -155,6 +155,18 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
+function getMedName(item) {
+  return item.name || item.medication_name || item.medication || 'Unknown';
+}
+
+function getMedQuantity(item) {
+  return item.current_stock ?? item.quantity ?? item.quantity_remaining ?? '';
+}
+
+function getExpiryDate(item) {
+  return item.expiry_date || item.expiry || item.expiry_date_formatted || 'N/A';
+}
+
 function renderClinicalText(text) {
   if (!text) return '';
   const lines = text.split('\n');
@@ -317,7 +329,10 @@ async function runStockReview() {
       html += '<div class="section-label">Low stock — reorder needed</div>';
       low.forEach(item => {
         html += `<div class="stock-row">
-          <div><div class="stock-name">${item.name || item.medication_name}</div><div class="stock-detail">${item.current_stock ?? item.quantity ?? ''} units remaining</div></div>
+          <div>
+            <div class="stock-name">${getMedName(item)}</div>
+            <div class="stock-detail">${getMedQuantity(item)} units remaining</div>
+          </div>
           <span class="badge badge-high">Reorder</span>
         </div>`;
       });
@@ -326,7 +341,10 @@ async function runStockReview() {
       html += '<div class="section-label" style="margin-top:16px">Expiring within 30 days</div>';
       exp.forEach(item => {
         html += `<div class="stock-row">
-          <div><div class="stock-name">${item.name || item.medication_name}</div><div class="stock-detail">Expires: ${item.expiry_date || item.expiry}</div></div>
+          <div>
+            <div class="stock-name">${getMedName(item)}</div>
+            <div class="stock-detail">Expires: ${getExpiryDate(item)}</div>
+          </div>
           <span class="badge badge-moderate">Expiring</span>
         </div>`;
       });
