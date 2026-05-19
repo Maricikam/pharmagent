@@ -58,7 +58,7 @@ def get_active_prescriptions(patient_id: int) -> list[dict]:
 def get_patients_due_refill(days_ahead: int = 7) -> list[dict]:
     """Return patients whose prescriptions are due within the next N days."""
     db = _db()
-    cutoff = (datetime.today() + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+    cutoff = (datetime.today() + timedelta(days=int(days_ahead))).strftime("%Y-%m-%d")
     today = datetime.today().strftime("%Y-%m-%d")
     rxs = (db.query(Prescription)
            .filter(Prescription.active == True,
@@ -112,7 +112,7 @@ def get_low_stock_items() -> list[dict]:
 
 def get_expiring_stock(days_ahead: int = 30) -> list[dict]:
     db = _db()
-    cutoff = (datetime.today() + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+    cutoff = (datetime.today() + timedelta(days=int(days_ahead))).strftime("%Y-%m-%d")
     today = datetime.today().strftime("%Y-%m-%d")
     items = (db.query(StockItem)
              .filter(StockItem.expiry_date <= cutoff,

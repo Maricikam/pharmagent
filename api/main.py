@@ -255,14 +255,17 @@ def stock_review():
 
 @app.post("/agents/engagement-campaign", tags=["Agents"])
 def engagement_campaign(req: EngagementRequest):
-    """Run the Patient Engagement Agent for a specific patient."""
     if not _has_api_key():
         return {"mode": "demo", "result": demo()["agents"]["patient_engagement_agent"]}
     try:
         from tools.pharmacy_tools import get_patient_by_nhs
         from agents.patient_engagement_agent import run_engagement_campaign
         patient = get_patient_by_nhs(req.nhs_number)
-        result = run_engagement_campaign(req.nhs_number, req.campaign_type)
+
+        # Map campaign_type to a channel — agent uses days_ahead + channel
+        channel = "sms"  # or derive from campaign_type if needed
+        result = run_engagement_campaign(days_ahead=7, channel=channel)
+
         return {
             "mode": "live",
             "patient": {"name": patient.get("name", "Patient"), "nhs_number": req.nhs_number},

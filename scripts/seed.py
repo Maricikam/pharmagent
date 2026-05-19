@@ -290,6 +290,10 @@ def seed():
         StockItem(medication=med["alendronate"],    quantity=60,  reorder_threshold=40,  reorder_quantity=150, expiry_date=(today + timedelta(days=360)).strftime("%Y-%m-%d"), supplier="Phoenix Healthcare",  unit_cost=0.25),
         StockItem(medication=med["calcium_vitd"],   quantity=175, reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=410)).strftime("%Y-%m-%d"), supplier="Colorcon",            unit_cost=0.09),
         StockItem(medication=med["amiodarone"],     quantity=40,  reorder_threshold=50,  reorder_quantity=150, expiry_date=(today + timedelta(days=280)).strftime("%Y-%m-%d"), supplier="AAH Pharmaceuticals", unit_cost=0.55),
+        StockItem(medication=med["furosemide"],     quantity=95,  reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=45)).strftime("%Y-%m-%d"),  supplier="Unichem",             unit_cost=0.07),
+        StockItem(medication=med["bisoprolol"],     quantity=110, reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=52)).strftime("%Y-%m-%d"),  supplier="Colorcon",            unit_cost=0.13),
+        StockItem(medication=med["montelukast"],    quantity=60,  reorder_threshold=60,  reorder_quantity=200, expiry_date=(today + timedelta(days=58)).strftime("%Y-%m-%d"),  supplier="Unichem",             unit_cost=0.32),
+        StockItem(medication=med["levothyroxine"],  quantity=75,  reorder_threshold=80,  reorder_quantity=300, expiry_date=(today + timedelta(days=63)).strftime("%Y-%m-%d"),  supplier="AAH Pharmaceuticals", unit_cost=0.11),
         StockItem(medication=med["ramipril"],       quantity=8,   reorder_threshold=60,  reorder_quantity=200, expiry_date=(today + timedelta(days=340)).strftime("%Y-%m-%d"), supplier="Unichem",             unit_cost=0.12),
     ]
     db.add_all(stock_items)
