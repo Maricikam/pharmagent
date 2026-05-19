@@ -175,7 +175,6 @@ class InteractionCheckRequest(BaseModel):
 
 
 class EngagementRequest(BaseModel):
-    nhs_number: str
     campaign_type: Optional[str] = "refill_reminder"
 
 
@@ -253,10 +252,12 @@ def stock_review():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/agents/engagement-campaign", tags=["Agents"])
+@app.post("/agents/engagement-campaign")
 def engagement_campaign(req: EngagementRequest):
-    if not _has_api_key():
-        return {"mode": "demo", "result": demo()["agents"]["patient_engagement_agent"]}
+    # remove the patient lookup, just run the campaign
+    result = run_engagement_campaign(days_ahead=7, channel="sms", campaign_type=req.campaign_type)
+    return {"mode": "live", "message": result}
+
     try:
         from tools.pharmacy_tools import get_patient_by_nhs
         from agents.patient_engagement_agent import run_engagement_campaign

@@ -56,17 +56,25 @@ Write in plain, accessible English. Many patients are elderly — avoid jargon."
 
 
 def generate_refill_message(patient_name: str, first_name: str, medications: list[str],
-                             next_due: str, channel: str) -> str:
+                             next_due: str, channel: str, campaign_type: str = "refill_reminder") -> str:
     """Ask Claude to generate a personalised message for one patient."""
     client = anthropic.Anthropic()
     med_list = ", ".join(medications)
+
+    type_instructions = {
+        "refill_reminder": "Write a refill reminder — their prescription is due soon.",
+        "adherence_check": "Write a gentle, caring check-in — we haven't seen them collect their medication recently. Are they okay? Encourage them to call.",
+        "seasonal": "Write a seasonal health check invitation — invite them in for a free health check this season.",
+    }
+    instruction = type_instructions.get(campaign_type, type_instructions["refill_reminder"])
+
     prompt = f"""
 Patient: {patient_name} (first name: {first_name})
-Medications due: {med_list}
+Medications: {med_list}
 Due date: {next_due}
 Channel: {channel} ({'max 160 characters' if channel == 'sms' else 'short friendly email'})
 
-Write a {channel} refill reminder for this patient.
+{instruction}
 Return ONLY the message text itself — no preamble, no markdown, no character count, no "Here's an SMS..." introduction. Just the message the patient would receive.
 """
     response = client.messages.create(
@@ -77,7 +85,7 @@ Return ONLY the message text itself — no preamble, no markdown, no character c
     )
     return response.content[0].text.strip()
 
-def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms") -> dict:
+def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms", campaign_type: str = "refill_reminder") -> dict:
     """
     Find all patients due for refills in the next N days and send them a reminder.
     Returns a summary of all outreach actions taken.
@@ -111,6 +119,7 @@ def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms") -> dict:
             medications=data["medications"],
             next_due=data["next_due_date"],
             channel=channel,
+            campaign_type=campaign_type,
         )
         send_result = send_patient_message(
             patient_id=pid,

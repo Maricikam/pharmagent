@@ -228,8 +228,6 @@
   <div id="engagement" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
-      <label for="eng-nhs">CHI number</label>
-      <input id="eng-nhs" type="text" placeholder="Enter CHI number">
       <label for="eng-type">Campaign type</label>
       <select id="eng-type">
         <option value="refill_reminder">Refill reminder</option>
@@ -555,9 +553,7 @@ async function runPatientLookup() {
 }
 
 async function runEngagement() {
-  const nhs = document.getElementById('eng-nhs').value.trim();
   const type = document.getElementById('eng-type').value;
-  if (!nhs) return;
   const orig = '<i class="ti ti-send"></i> Generate message';
   setLoading('eng-btn', true);
   const box = document.getElementById('eng-result');
@@ -567,7 +563,7 @@ async function runEngagement() {
     const res = await fetch(BASE + '/agents/engagement-campaign', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({nhs_number: nhs, campaign_type: type}),
+      body: JSON.stringify({campaign_type: type}),
     });
     const data = await res.json();
     const results = data.message?.results || data.result?.results || [];
