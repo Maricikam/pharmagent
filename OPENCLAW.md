@@ -125,8 +125,3 @@ PharmAgent is built on the same architectural principles as OpenClaw:
 | Automation | Scheduled morning briefing | OpenClaw cron tasks |
 
 PharmAgent's FastAPI backend exposes the multi-agent system as HTTP endpoints, and these OpenClaw skills teach your lobster how to call them — turning a pharmacy AI into something you can manage from your phone.
-
----
-
-*PharmAgent AI | HND Software Development | New College Lanarkshire | May 2026*
-*Submitted for the DataVita OpenClaw Challenge*

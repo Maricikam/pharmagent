@@ -17,7 +17,7 @@ from scripts.seed import seed
 def main():
     print("=" * 65)
     print("  PharmAgent AI — Live Demo")
-    print("  DataVita Infrastructure Proposal | NCLan HND Software Dev")
+    print("  DataVita Infrastructure Proposal ")
     print("=" * 65)
 
     print("\n📦 Initialising database and seeding data...")

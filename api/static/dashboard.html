@@ -38,7 +38,6 @@
   .badge-high { background: #fef2f2; color: #dc2626; }
   .badge-moderate { background: #fffbeb; color: #d97706; }
   .badge-low { background: #f0fdf4; color: #16a34a; }
-  .badge-info { background: #eff6ff; color: #2563eb; }
   .badge-active { background: #e6f7f1; color: #1D9E75; }
   .patient-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e9f0; }
   .avatar { width: 46px; height: 46px; border-radius: 50%; background: #e6f7f1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #1D9E75; flex-shrink: 0; }
@@ -55,10 +54,12 @@
   .clinical-danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
   .clinical-safe { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
   .clinical-box .clinical-header { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
-  .clinical-box .clinical-section-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 6px; opacity: 0.7; }
-  .clinical-box ul { padding-left: 18px; margin: 4px 0 8px; }
-  .clinical-box ul li { margin: 4px 0; line-height: 1.5; font-size: 13px; }
-  .clinical-box p { margin: 4px 0; line-height: 1.6; font-size: 13px; }
+  .clinical-box .c-section { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; margin: 14px 0 5px; opacity: 0.65; }
+  .clinical-box ul { padding-left: 16px; margin: 4px 0 8px; list-style: disc; }
+  .clinical-box ul li { margin: 5px 0; line-height: 1.55; font-size: 13px; }
+  .clinical-box ol { padding-left: 16px; margin: 4px 0 8px; list-style: decimal; }
+  .clinical-box ol li { margin: 5px 0; line-height: 1.55; font-size: 13px; }
+  .clinical-box p { margin: 5px 0; line-height: 1.6; font-size: 13px; }
   .clinical-box hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0; }
   .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f3f4f6; }
   .stock-row:last-child { border-bottom: none; }
@@ -77,14 +78,10 @@
   .msg-box { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; color: #1a1a2e; white-space: pre-wrap; }
   .empty-state { text-align: center; padding: 2rem; color: #6b7280; font-size: 14px; }
   .empty-state i { font-size: 32px; color: #1D9E75; display: block; margin-bottom: 8px; }
-
-  /* Reorder button */
   .reorder-btn { background: none; border: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: #dc2626; padding: 4px 10px; border-radius: 6px; transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
   .reorder-btn:hover:not(:disabled) { background: #fef2f2; }
   .reorder-btn:disabled { cursor: not-allowed; opacity: 0.7; }
   .reorder-btn.ordered { color: #1D9E75; }
-
-  /* Modal */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
   .modal-overlay.show { display: flex; }
   .modal { background: #fff; border-radius: 14px; padding: 1.75rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.18); }
@@ -96,13 +93,9 @@
   .modal-detail-label { color: #6b7280; }
   .modal-detail-value { font-weight: 600; color: #1a1a2e; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-  .modal-cancel { padding: 9px 18px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; transition: border-color 0.15s; }
-  .modal-cancel:hover { border-color: #9ca3af; }
-  .modal-confirm { padding: 9px 18px; border-radius: 8px; background: #1D9E75; color: #fff; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; display: inline-flex; align-items: center; gap: 7px; transition: background 0.15s; }
-  .modal-confirm:hover { background: #189065; }
+  .modal-cancel { padding: 9px 18px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; }
+  .modal-confirm { padding: 9px 18px; border-radius: 8px; background: #1D9E75; color: #fff; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; display: inline-flex; align-items: center; gap: 7px; }
   .modal-confirm:disabled { background: #9ca3af; cursor: not-allowed; }
-
-  /* Toast */
   .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1a1a2e; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 200; transform: translateY(80px); opacity: 0; transition: all 0.25s; }
   .toast.show { transform: translateY(0); opacity: 1; }
   .toast i { color: #1D9E75; font-size: 16px; }
@@ -119,7 +112,6 @@
   <span class="topbar-badge"><i class="ti ti-circle-check" style="font-size:13px;vertical-align:-1px"></i> Live AI</span>
 </div>
 
-<!-- Reorder modal -->
 <div class="modal-overlay" id="reorder-modal">
   <div class="modal">
     <div class="modal-title"><i class="ti ti-truck-delivery"></i> Confirm reorder</div>
@@ -132,18 +124,12 @@
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeModal()">Cancel</button>
-      <button class="modal-confirm" id="modal-confirm-btn" onclick="confirmReorder()">
-        <i class="ti ti-check"></i> Place order
-      </button>
+      <button class="modal-confirm" id="modal-confirm-btn" onclick="confirmReorder()"><i class="ti ti-check"></i> Place order</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast">
-  <i class="ti ti-circle-check"></i>
-  <span id="toast-msg">Order placed successfully</span>
-</div>
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg">Order placed</span></div>
 
 <div class="main">
   <nav class="nav">
@@ -156,10 +142,10 @@
   <div id="interaction" class="section active">
     <div class="card">
       <div class="card-title"><i class="ti ti-shield-check"></i> Drug interaction checker</div>
-      <label for="nhs-input">NHS number</label>
-      <input id="nhs-input" type="text" placeholder="e.g. 4823719056" value="4823719056">
+      <label for="nhs-input">CHI number</label>
+      <input id="nhs-input" type="text" placeholder="Enter CHI number">
       <label for="med-input">New medication to check</label>
-      <input id="med-input" type="text" placeholder="e.g. Ibuprofen" value="Ibuprofen">
+      <input id="med-input" type="text" placeholder="e.g. Ibuprofen">
       <button class="btn btn-primary" id="int-btn" onclick="runInteractionCheck()">
         <i class="ti ti-search"></i> Check interactions
       </button>
@@ -181,8 +167,8 @@
   <div id="patient" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-user"></i> Patient lookup</div>
-      <label for="pat-nhs">NHS number</label>
-      <input id="pat-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
+      <label for="pat-nhs">CHI number</label>
+      <input id="pat-nhs" type="text" placeholder="Enter CHI number">
       <button class="btn btn-primary" id="pat-btn" onclick="runPatientLookup()">
         <i class="ti ti-search"></i> Look up patient
       </button>
@@ -193,8 +179,8 @@
   <div id="engagement" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
-      <label for="eng-nhs">NHS number</label>
-      <input id="eng-nhs" type="text" placeholder="e.g. 4823719056" value="4823719056">
+      <label for="eng-nhs">CHI number</label>
+      <input id="eng-nhs" type="text" placeholder="Enter CHI number">
       <label for="eng-type">Campaign type</label>
       <select id="eng-type">
         <option value="refill_reminder">Refill reminder</option>
@@ -212,35 +198,68 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-function getMedName(item) {
-  return item.name || item.medication_name || item.medication || 'Unknown';
-}
-function getMedQuantity(item) {
-  return item.current_stock ?? item.quantity ?? item.quantity_remaining ?? '';
-}
-function getExpiryDate(item) {
-  return item.expiry_date || item.expiry || 'N/A';
-}
-function getReorderQty(item) {
-  return item.reorder_quantity || item.reorder_threshold || 100;
-}
-function getSupplier(item) {
-  return item.supplier || 'Alliance Healthcare';
+function inlineMd(text) {
+  return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
 }
 
-// ── Reorder modal ──────────────────────────────────────────────────────────
+function chiLabel(text) {
+  return text ? String(text).replace(/\bNHS\b/g, 'CHI') : text;
+}
+
+function formatMedPill(m) {
+  const name = m.name || '';
+  const freq = (m.frequency || '').replace(/^\d+(\.\d+)?\s*(mg|mcg|g|ml|units?)\s*/i, '').trim();
+  return freq ? `${name} · ${freq}` : name;
+}
+
+function renderClinicalText(text) {
+  if (!text) return '';
+  text = chiLabel(text);
+  const lines = text.split('\n');
+  let html = '';
+  let listStack = [];
+
+  function closeAll() { while (listStack.length) html += `</${listStack.pop()}>`; }
+
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { closeAll(); continue; }
+    if (t === '---' || /^-{3,}$/.test(t)) { closeAll(); html += '<hr>'; continue; }
+    if (t.startsWith('|')) continue; // skip markdown tables
+
+    if (/^#{1,3}\s/.test(t)) {
+      closeAll();
+      html += `<div class="c-section">${t.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '$1')}</div>`;
+      continue;
+    }
+    if (/^[-*•]\s/.test(t)) {
+      if (listStack[listStack.length-1] !== 'ul') { closeAll(); html += '<ul>'; listStack.push('ul'); }
+      html += `<li>${inlineMd(t.replace(/^[-*•]\s+/, ''))}</li>`;
+      continue;
+    }
+    if (/^\d+\.\s/.test(t)) {
+      if (listStack[listStack.length-1] !== 'ol') { closeAll(); html += '<ol>'; listStack.push('ol'); }
+      html += `<li>${inlineMd(t.replace(/^\d+\.\s+/, ''))}</li>`;
+      continue;
+    }
+    closeAll();
+    html += `<p>${inlineMd(t)}</p>`;
+  }
+  closeAll();
+  return html;
+}
+
+function getMedName(item) { return item.name || item.medication_name || item.medication || 'Unknown'; }
+function getMedQuantity(item) { return item.current_stock ?? item.quantity ?? item.quantity_remaining ?? ''; }
+function getExpiryDate(item) { return item.expiry_date || item.expiry || 'N/A'; }
+function getReorderQty(item) { return item.reorder_quantity || item.reorder_threshold || 100; }
+function getSupplier(item) { return item.supplier || 'Alliance Healthcare'; }
+
 let pendingReorder = null;
 
 function handleReorderClick(idx) {
   const item = window._lowStockItems[idx];
-  const btnEl = document.getElementById('reorder-btn-' + idx);
-  pendingReorder = {
-    medication_name: getMedName(item),
-    quantity: getReorderQty(item),
-    supplier: getSupplier(item),
-    btnEl,
-  };
+  pendingReorder = { medication_name: getMedName(item), quantity: getReorderQty(item), supplier: getSupplier(item), btnEl: document.getElementById('reorder-btn-' + idx) };
   document.getElementById('modal-med').textContent = pendingReorder.medication_name;
   document.getElementById('modal-qty').textContent = pendingReorder.quantity + ' units';
   document.getElementById('modal-supplier').textContent = pendingReorder.supplier;
@@ -255,9 +274,7 @@ function closeModal() {
   pendingReorder = null;
 }
 
-document.getElementById('reorder-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+document.getElementById('reorder-modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
 
 async function confirmReorder() {
   if (!pendingReorder) return;
@@ -266,13 +283,8 @@ async function confirmReorder() {
   confirmBtn.innerHTML = '<span class="spinner"></span> Placing...';
   try {
     const res = await fetch(BASE + '/stock/reorder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        medication_name: pendingReorder.medication_name,
-        quantity: pendingReorder.quantity,
-        supplier: pendingReorder.supplier,
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ medication_name: pendingReorder.medication_name, quantity: pendingReorder.quantity, supplier: pendingReorder.supplier })
     });
     const data = await res.json();
     if (pendingReorder.btnEl) {
@@ -297,7 +309,6 @@ function showToast(msg, isError = false) {
   setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
-// ── UI helpers ─────────────────────────────────────────────────────────────
 function showTab(tab, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -305,46 +316,12 @@ function showTab(tab, btn) {
   btn.classList.add('active');
 }
 
-function setLoading(btnId, loading, originalHTML) {
+function setLoading(btnId, loading, orig) {
   const btn = document.getElementById(btnId);
   if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Running...'; }
-  else { btn.disabled = false; btn.innerHTML = originalHTML; }
+  else { btn.disabled = false; btn.innerHTML = orig; }
 }
 
-function renderClinicalText(text) {
-  if (!text) return '';
-  const lines = text.split('\n');
-  let html = '';
-  let inList = false;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-    if (!trimmed || trimmed === '---') {
-      if (inList) { html += '</ul>'; inList = false; }
-      if (trimmed === '---') html += '<hr>';
-      continue;
-    }
-    const cleaned = trimmed.replace(/^#+\s*/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
-    if (/^#+\s/.test(line)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<div class="clinical-section-title">${cleaned}</div>`;
-    } else if (/^[-•]\s/.test(trimmed)) {
-      if (!inList) { html += '<ul>'; inList = true; }
-      html += `<li>${trimmed.replace(/^[-•]\s+/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')}</li>`;
-    } else if (/^\d+\.\s/.test(trimmed)) {
-      if (inList) { html += '</ul>'; inList = false; }
-      if (!html.includes('<ol>') || html.lastIndexOf('</ol>') > html.lastIndexOf('<ol>')) { html += '<ol style="padding-left:18px;margin:4px 0 8px">'; inList = true; }
-      html += `<li style="margin:4px 0;font-size:13px;line-height:1.5">${trimmed.replace(/^\d+\.\s+/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}</li>`;
-    } else {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<p>${cleaned}</p>`;
-    }
-  }
-  if (inList) html += '</ul>';
-  return html;
-}
-
-// ── Agent calls ────────────────────────────────────────────────────────────
 async function runInteractionCheck() {
   const nhs = document.getElementById('nhs-input').value.trim();
   const med = document.getElementById('med-input').value.trim();
@@ -360,31 +337,39 @@ async function runInteractionCheck() {
       body: JSON.stringify({nhs_number: nhs, new_medication_name: med})
     });
     const data = await res.json();
-    const r = data.report;
-    const p = r.patient;
-    const ir = r.interaction_report;
+    const r = data.report, p = r.patient, ir = r.interaction_report;
     const initials = p.name.split(' ').map(n => n[0]).join('');
     const isHigh = ir.risk_level === 'HIGH';
     const isSafe = !isHigh && ir.interactions_detected.length === 0;
+
     let html = `
       <div class="patient-row">
         <div class="avatar">${initials}</div>
-        <div><div class="patient-name">${p.name}</div><div class="patient-meta">NHS: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div></div>
+        <div><div class="patient-name">${p.name}</div><div class="patient-meta">CHI: ${p.nhs_number} &nbsp;·&nbsp; DOB: ${p.dob}</div></div>
         <span class="badge badge-${ir.risk_level === 'HIGH' ? 'high' : ir.risk_level === 'MODERATE' ? 'moderate' : 'low'}" style="margin-left:auto">${ir.risk_level} RISK</span>
       </div>
       <div class="section-label">Current medications</div>
-      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${m.name} · ${m.dose}${m.frequency ? ' · ' + m.frequency : ''}</span>`).join('')}</div>
+      <div style="margin-bottom:12px">${r.active_medications.map(m => `<span class="med-pill">${formatMedPill(m)}</span>`).join('')}</div>
       <div class="section-label">Checking: <strong style="color:#1a1a2e">${r.new_medication}</strong></div>`;
+
     if (ir.interactions_detected.length > 0) {
       ir.interactions_detected.forEach(i => {
         const cls = i.severity === 'Major' ? '' : 'moderate';
-        html += `<div class="interaction-item ${cls}"><div class="interaction-drugs"><i class="ti ti-alert-triangle" style="color:${cls ? '#d97706' : '#dc2626'}"></i>${i.drug_a} + ${i.drug_b}<span class="badge badge-${i.severity === 'Major' ? 'high' : 'moderate'}">${i.severity}</span></div><div class="interaction-mech">${i.mechanism}</div><div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div></div>`;
+        html += `<div class="interaction-item ${cls}">
+          <div class="interaction-drugs"><i class="ti ti-alert-triangle" style="color:${cls ? '#d97706' : '#dc2626'}"></i>${i.drug_a} + ${i.drug_b}<span class="badge badge-${i.severity === 'Major' ? 'high' : 'moderate'}">${i.severity}</span></div>
+          <div class="interaction-mech">${i.mechanism}</div>
+          <div class="interaction-rec"><i class="ti ti-arrow-right" style="font-size:13px"></i> ${i.recommendation}</div>
+        </div>`;
       });
     } else if (!ir.clinical_decision) {
       html += `<div class="empty-state"><i class="ti ti-circle-check"></i>No interactions detected</div>`;
     }
+
     if (ir.clinical_decision) {
-      html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}"><div class="clinical-header"><i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}" style="font-size:16px;flex-shrink:0"></i>${isSafe ? 'No significant interactions' : 'Pharmacist review required'}</div>${renderClinicalText(ir.clinical_decision)}</div>`;
+      html += `<div class="clinical-box ${isSafe ? 'clinical-safe' : 'clinical-danger'}">
+        <div class="clinical-header"><i class="ti ti-${isSafe ? 'circle-check' : 'alert-circle'}" style="font-size:16px;flex-shrink:0"></i>${isSafe ? 'No significant interactions' : 'Pharmacist review required'}</div>
+        ${renderClinicalText(ir.clinical_decision)}
+      </div>`;
     }
     html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
@@ -418,30 +403,20 @@ async function runStockReview() {
       html += '<div class="section-label">Low stock — reorder needed</div>';
       low.forEach((item, idx) => {
         html += `<div class="stock-row">
-          <div>
-            <div class="stock-name">${getMedName(item)}</div>
-            <div class="stock-detail">${getMedQuantity(item)} units remaining &nbsp;·&nbsp; Reorder qty: ${getReorderQty(item)}</div>
-          </div>
-          <button class="reorder-btn" id="reorder-btn-${idx}" onclick="handleReorderClick(${idx})">
-            <i class="ti ti-truck-delivery" style="font-size:12px"></i> Reorder
-          </button>
+          <div><div class="stock-name">${getMedName(item)}</div><div class="stock-detail">${getMedQuantity(item)} units remaining &nbsp;·&nbsp; Reorder qty: ${getReorderQty(item)}</div></div>
+          <button class="reorder-btn" id="reorder-btn-${idx}" onclick="handleReorderClick(${idx})"><i class="ti ti-truck-delivery" style="font-size:12px"></i> Reorder</button>
         </div>`;
       });
     }
-
     if (exp.length > 0) {
       html += '<div class="section-label" style="margin-top:16px">Expiring within 30 days</div>';
       exp.forEach(item => {
         html += `<div class="stock-row">
-          <div>
-            <div class="stock-name">${getMedName(item)}</div>
-            <div class="stock-detail">Expires: ${getExpiryDate(item)}${item.estimated_waste ? ' &nbsp;·&nbsp; Est. waste: £' + item.estimated_waste : ''}</div>
-          </div>
+          <div><div class="stock-name">${getMedName(item)}</div><div class="stock-detail">Expires: ${getExpiryDate(item)}</div></div>
           <span class="badge badge-moderate">Expiring</span>
         </div>`;
       });
     }
-
     if (low.length === 0 && exp.length === 0) {
       html += '<div class="empty-state"><i class="ti ti-circle-check"></i>All stock levels are healthy</div>';
     }
@@ -466,11 +441,17 @@ async function runPatientLookup() {
     const p = data.patient || data;
     const meds = p.active_medications || p.medications || [];
     const initials = (p.name || 'XX').split(' ').map(n => n[0]).join('');
-    let html = `<div class="patient-row"><div class="avatar">${initials}</div><div><div class="patient-name">${p.name || 'Unknown'}</div><div class="patient-meta">NHS: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div></div></div>`;
+    let html = `<div class="patient-row">
+      <div class="avatar">${initials}</div>
+      <div><div class="patient-name">${p.name || 'Unknown'}</div><div class="patient-meta">CHI: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div></div>
+    </div>`;
     if (meds.length > 0) {
       html += '<div class="section-label">Active medications</div>';
       meds.forEach(m => {
-        html += `<div class="stock-row"><div><div class="stock-name">${m.name}</div><div class="stock-detail">${m.dose} · ${m.frequency}</div></div><span class="badge badge-active">Active</span></div>`;
+        html += `<div class="stock-row">
+          <div><div class="stock-name">${m.name}</div><div class="stock-detail">${m.dose} · ${m.frequency}</div></div>
+          <span class="badge badge-active">Active</span>
+        </div>`;
       });
     }
     box.innerHTML = html;
@@ -499,7 +480,7 @@ async function runEngagement() {
     const msg = data.message || data.campaign?.message || data.report?.message || JSON.stringify(data, null, 2);
     let html = '';
     if (patName) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;font-weight:500">Campaign generated for: <strong style="color:#1a1a2e">${patName}</strong></div>`;
-    html += `<div class="msg-box">${typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2)}</div>`;
+    html += `<div class="msg-box">${typeof msg === 'string' ? chiLabel(msg) : JSON.stringify(msg, null, 2)}</div>`;
     box.innerHTML = html;
   } catch(e) {
     box.innerHTML = '<p style="color:#dc2626;font-size:14px;">Error generating engagement message.</p>';

@@ -9,7 +9,6 @@
 # PharmAgent AI
 
 **Intelligent Agent System for Pharmacy Management**
-HND Software Development | New College Lanarkshire | May 2026
 Target Infrastructure: DataVita Scottish Data Centre
 
 ---
