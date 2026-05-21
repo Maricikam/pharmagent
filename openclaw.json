@@ -1,13 +1,4 @@
 {
-  // PharmAgent AI — OpenClaw Workspace Configuration
-  // Place this file at: ~/.openclaw/openclaw.json
-  // Or copy to your OpenClaw workspace root.
-  //
-  // Before use:
-  //   1. Set PHARMAGENT_API_URL to your deployed PharmAgent API (e.g. https://pharmagent.up.railway.app)
-  //   2. Set ANTHROPIC_API_KEY in your environment
-  //   3. Run: openclaw onboard
-
   "skills": {
     "load": {
       "extraDirs": ["./skills"]
@@ -16,25 +7,29 @@
       "pharmagent-interaction-check": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app"
+          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_KEY": "your-api-key-here"
         }
       },
       "pharmagent-stock-review": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app"
+          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_KEY": "your-api-key-here"
         }
       },
       "pharmagent-patient-engagement": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app"
+          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_KEY": "your-api-key-here"
         }
       },
       "pharmagent-morning-briefing": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app"
+          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_KEY": "your-api-key-here"
         }
       }
     }

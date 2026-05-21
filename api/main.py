@@ -8,8 +8,9 @@ import string
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.api_key import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -35,6 +36,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def require_api_key(api_key: str = Security(_api_key_header)):
+    expected = os.getenv("API_KEY", "").strip()
+    if expected and api_key != expected:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key. Provide it via the X-API-Key header.")
 
 
 def _ref() -> str:
@@ -114,7 +124,7 @@ def demo():
     }
 
 
-@app.get("/patients/{nhs_number}", tags=["Patients"])
+@app.get("/patients/{nhs_number}", tags=["Patients"], dependencies=[Depends(require_api_key)])
 def patient_lookup(nhs_number: str):
     try:
         from tools.pharmacy_tools import get_patient_by_nhs, get_active_prescriptions
@@ -139,7 +149,7 @@ def patient_lookup(nhs_number: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/stock/low", tags=["Stock"])
+@app.get("/stock/low", tags=["Stock"], dependencies=[Depends(require_api_key)])
 def low_stock():
     try:
         from tools.pharmacy_tools import get_low_stock_items
@@ -154,7 +164,7 @@ def low_stock():
         }
 
 
-@app.get("/stock/expiring", tags=["Stock"])
+@app.get("/stock/expiring", tags=["Stock"], dependencies=[Depends(require_api_key)])
 def expiring_stock(days: int = 30):
     try:
         from tools.pharmacy_tools import get_expiring_stock
@@ -186,7 +196,7 @@ class ReorderRequest(BaseModel):
     quantity: int
     supplier: str
 
-@app.post("/stock/reorder", tags=["Stock"])
+@app.post("/stock/reorder", tags=["Stock"], dependencies=[Depends(require_api_key)])
 def reorder_stock(req: ReorderRequest):
     try:
         from tools.pharmacy_tools import place_reorder
@@ -199,7 +209,7 @@ def reorder_stock(req: ReorderRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/agents/interaction-check", tags=["Agents"])
+@app.post("/agents/interaction-check", tags=["Agents"], dependencies=[Depends(require_api_key)])
 def interaction_check(req: InteractionCheckRequest):
     """Run the Interaction Safety Agent for a patient."""
     if not _has_api_key():
@@ -240,7 +250,7 @@ def interaction_check(req: InteractionCheckRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/agents/stock-review", tags=["Agents"])
+@app.post("/agents/stock-review", tags=["Agents"], dependencies=[Depends(require_api_key)])
 def stock_review():
     """Run the Stock Intelligence Agent."""
     if not _has_api_key():
@@ -252,7 +262,7 @@ def stock_review():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/agents/engagement-campaign", tags=["Agents"])
+@app.post("/agents/engagement-campaign", tags=["Agents"], dependencies=[Depends(require_api_key)])
 def engagement_campaign(req: EngagementRequest):
     if not _has_api_key():
         return {"mode": "demo", "result": demo()["agents"]["patient_engagement_agent"]}
@@ -264,7 +274,7 @@ def engagement_campaign(req: EngagementRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/agents/orchestrate", tags=["Agents"])
+@app.post("/agents/orchestrate", tags=["Agents"], dependencies=[Depends(require_api_key)])
 def orchestrate(req: OrchestrateRequest):
     """Send a plain-English intent to the Orchestrator Agent."""
     if not _has_api_key():
