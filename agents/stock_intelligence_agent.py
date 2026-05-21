@@ -25,11 +25,6 @@ Design note:
     regulatory audit compliance.
 """
 
-"""
-Stock Intelligence Agent
-Reviews inventory, flags low stock and expiring medications,
-and triggers supplier reorder workflows.
-"""
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import anthropic
 import json
+from datetime import datetime
 from tools.pharmacy_tools import (get_patients_due_refill, get_active_prescriptions,
                                    send_patient_message, log_audit_event)
 
@@ -126,11 +127,18 @@ def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms", campaign_
             channel=channel,
             message=message,
         )
+        try:
+            due = datetime.strptime(data["next_due_date"], "%Y-%m-%d")
+            days_until_due = (due - datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)).days
+        except Exception:
+            days_until_due = None
         results.append({
             "patient": data["name"],
             "channel": channel,
             "message": message,
             "send_status": send_result.get("status"),
+            "days_until_due": days_until_due,
+            "medications": data["medications"],
         })
 
     log_audit_event(
