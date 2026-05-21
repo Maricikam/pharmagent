@@ -19,14 +19,12 @@ Use this skill before dispensing a new medication to check for interactions with
 ## How to use
 
 ```
-POST ${PHARMAGENT_API_URL}/agents/interaction-check
-Content-Type: application/json
-X-API-Key: ${PHARMAGENT_API_KEY}
+GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=<CHI>&new_medication_name=<medication>
+```
 
-{
-  "nhs_number": "<10-digit CHI number>",
-  "new_medication_name": "<medication name>"
-}
+Example:
+```
+GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=4823719056&new_medication_name=Ibuprofen
 ```
 
 **Parameters:**

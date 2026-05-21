@@ -26,14 +26,12 @@ Every weekday at 08:00: run pharmagent-morning-briefing
 
 ## How to use
 
-```
-POST ${PHARMAGENT_API_URL}/agents/orchestrate
-Content-Type: application/json
-X-API-Key: ${PHARMAGENT_API_KEY}
+Run all three agent steps in sequence using these GET calls:
 
-{
-  "intent": "Good morning. Please do a full stock review, flag anything expiring in the next 30 days, and send SMS reminders to patients whose prescriptions are due in the next 7 days."
-}
+```
+GET https://web-production-1f27a.up.railway.app/agents/stock-review
+GET https://web-production-1f27a.up.railway.app/stock/expiring?days=30
+GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=refill_reminder
 ```
 
 ## What it does

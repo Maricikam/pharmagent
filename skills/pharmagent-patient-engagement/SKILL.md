@@ -20,13 +20,13 @@ Use this skill to send proactive refill reminders to patients, or to check who n
 ## How to use
 
 ```
-POST ${PHARMAGENT_API_URL}/agents/engagement-campaign
-Content-Type: application/json
-X-API-Key: ${PHARMAGENT_API_KEY}
+GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=refill_reminder
+```
 
-{
-  "campaign_type": "refill_reminder"
-}
+Other campaign types:
+```
+GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=adherence_check
+GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=seasonal
 ```
 
 **Parameters:**

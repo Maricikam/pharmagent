@@ -22,23 +22,19 @@ Use this skill when asked about stock levels, medication supply, expiring items,
 ### Full stock review (recommended — triggers auto-reorders)
 
 ```
-POST ${PHARMAGENT_API_URL}/agents/stock-review
-Content-Type: application/json
-X-API-Key: ${PHARMAGENT_API_KEY}
+GET https://web-production-1f27a.up.railway.app/agents/stock-review
 ```
 
-### Check low stock only (read-only)
+### Check low stock only
 
 ```
-GET ${PHARMAGENT_API_URL}/stock/low
-X-API-Key: ${PHARMAGENT_API_KEY}
+GET https://web-production-1f27a.up.railway.app/stock/low
 ```
 
 ### Check near-expiry items
 
 ```
-GET ${PHARMAGENT_API_URL}/stock/expiring?days=30
-X-API-Key: ${PHARMAGENT_API_KEY}
+GET https://web-production-1f27a.up.railway.app/stock/expiring?days=30
 ```
 
 ## Output
