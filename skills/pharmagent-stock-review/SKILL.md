@@ -2,7 +2,7 @@
 name: pharmagent-stock-review
 description: Review pharmacy stock levels, identify low or near-expiry medications, and trigger supplier reorder workflows automatically.
 homepage: https://github.com/Maricikam/pharmagent
-metadata: {"openclaw": {"emoji": "📦", "requires": {"env": ["PHARMAGENT_API_URL"]}}}
+metadata: {"openclaw": {"emoji": "📦", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
 # PharmAgent — Stock Intelligence Review
@@ -24,20 +24,21 @@ Use this skill when asked about stock levels, medication supply, expiring items,
 ```
 POST ${PHARMAGENT_API_URL}/agents/stock-review
 Content-Type: application/json
-
-{}
+X-API-Key: ${PHARMAGENT_API_KEY}
 ```
 
 ### Check low stock only (read-only)
 
 ```
 GET ${PHARMAGENT_API_URL}/stock/low
+X-API-Key: ${PHARMAGENT_API_KEY}
 ```
 
 ### Check near-expiry items
 
 ```
 GET ${PHARMAGENT_API_URL}/stock/expiring?days=30
+X-API-Key: ${PHARMAGENT_API_KEY}
 ```
 
 ## Output

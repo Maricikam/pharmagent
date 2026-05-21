@@ -2,7 +2,7 @@
 name: pharmagent-patient-engagement
 description: Send personalised SMS or email refill reminders to patients whose prescriptions are due soon. Filters by days ahead and channel.
 homepage: https://github.com/Maricikam/pharmagent
-metadata: {"openclaw": {"emoji": "📱", "requires": {"env": ["PHARMAGENT_API_URL"]}}}
+metadata: {"openclaw": {"emoji": "📱", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
 # PharmAgent — Patient Engagement
@@ -22,16 +22,15 @@ Use this skill to send proactive refill reminders to patients, or to check who n
 ```
 POST ${PHARMAGENT_API_URL}/agents/engagement-campaign
 Content-Type: application/json
+X-API-Key: ${PHARMAGENT_API_KEY}
 
 {
-  "days_ahead": 7,
-  "channel": "sms"
+  "campaign_type": "refill_reminder"
 }
 ```
 
 **Parameters:**
-- `days_ahead` (int, default 7) — contact patients with prescriptions due within this many days
-- `channel` (string) — `"sms"` or `"email"`
+- `campaign_type` (string, default `"refill_reminder"`) — one of `"refill_reminder"`, `"adherence_check"`, or `"seasonal"`
 
 ## Output
 

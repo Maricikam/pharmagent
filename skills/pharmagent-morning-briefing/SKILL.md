@@ -2,7 +2,7 @@
 name: pharmagent-morning-briefing
 description: Run the full PharmAgent morning workflow — stock review, expiry check, and patient engagement reminders — in a single orchestrated briefing. Ideal as a scheduled daily task.
 homepage: https://github.com/Maricikam/pharmagent
-metadata: {"openclaw": {"emoji": "🌅", "requires": {"env": ["PHARMAGENT_API_URL"]}}}
+metadata: {"openclaw": {"emoji": "🌅", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
 # PharmAgent — Morning Briefing (Full Orchestrated Workflow)
@@ -29,6 +29,7 @@ Every weekday at 08:00: run pharmagent-morning-briefing
 ```
 POST ${PHARMAGENT_API_URL}/agents/orchestrate
 Content-Type: application/json
+X-API-Key: ${PHARMAGENT_API_KEY}
 
 {
   "intent": "Good morning. Please do a full stock review, flag anything expiring in the next 30 days, and send SMS reminders to patients whose prescriptions are due in the next 7 days."
