@@ -243,9 +243,21 @@
       <div class="card-title"><i class="ti ti-mail"></i> Patient engagement campaign</div>
       <label for="eng-type">Campaign type</label>
       <select id="eng-type">
-        <option value="refill_reminder">Refill reminder</option>
-        <option value="adherence_check">Adherence check</option>
-        <option value="seasonal">Seasonal health check</option>
+        <optgroup label="Routine">
+          <option value="refill_reminder">Refill reminder</option>
+          <option value="adherence_check">Adherence check</option>
+        </optgroup>
+        <optgroup label="Seasonal campaigns">
+          <option value="flu_vaccination">Flu vaccination (autumn/winter)</option>
+          <option value="spring_allergies">Spring allergies &amp; hay fever</option>
+          <option value="winter_wellness">Winter wellness &amp; vitamin D</option>
+          <option value="photosensitivity_summer">Summer sun safety</option>
+        </optgroup>
+        <optgroup label="Proactive outreach">
+          <option value="travel_health">Travel health</option>
+          <option value="new_year_health">New Year medicines review</option>
+          <option value="seasonal">General seasonal health check</option>
+        </optgroup>
       </select>
       <button class="btn btn-primary" id="eng-btn" onclick="runEngagement()">
         <i class="ti ti-send"></i> Generate message

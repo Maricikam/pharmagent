@@ -62,6 +62,38 @@ def generate_refill_message(patient_name: str, first_name: str, medications: lis
         "refill_reminder": "Write a refill reminder — their prescription is due soon.",
         "adherence_check": "Write a gentle, caring check-in — we haven't seen them collect their medication recently. Are they okay? Encourage them to call.",
         "seasonal": "Write a seasonal health check invitation — invite them in for a free health check this season.",
+        "flu_vaccination": (
+            "Write a flu vaccination invitation. Mention that the pharmacy is now offering free NHS flu jabs "
+            "for eligible patients. Note that their medications may put them in an at-risk group. "
+            "Encourage them to pop in or call to book — no appointment usually needed."
+        ),
+        "spring_allergies": (
+            "Write a spring hay fever and allergy season message. Mention that pollen counts are rising and "
+            "the pharmacy has antihistamines and nasal sprays in stock. If their current medications include "
+            "anything that interacts with antihistamines, remind them to ask the pharmacist before buying "
+            "over-the-counter remedies. Friendly and helpful tone."
+        ),
+        "winter_wellness": (
+            "Write a winter wellness message. Remind the patient to keep warm, stay on top of their regular "
+            "medications during the cold months, and consider vitamin D supplements as daylight shortens. "
+            "Mention the pharmacy can help with cold and flu remedies and is happy to do a free medicines review."
+        ),
+        "travel_health": (
+            "Write a pre-travel health reminder. The patient may be travelling soon. Remind them to collect "
+            "enough of their regular medications to cover the trip (plus spare), and to ask the pharmacist "
+            "about any travel vaccinations, antimalarials, or interactions with sun/heat. Warm, practical tone."
+        ),
+        "new_year_health": (
+            "Write a New Year health goals message. It's a new year — a good time for a free NHS medicines "
+            "review at the pharmacy. Mention that a pharmacist can check all their medications are still "
+            "right for them, discuss any side effects they've been putting up with, and help with any "
+            "health goals like stopping smoking or losing weight."
+        ),
+        "photosensitivity_summer": (
+            "Write a summer sun safety message. Some of their medications increase sensitivity to sunlight — "
+            "remind them to use SPF 30+ sunscreen, wear a hat in strong sun, and avoid peak UV hours. "
+            "Keep it brief and practical. Mention the pharmacy stocks a range of high-factor sunscreens."
+        ),
     }
     instruction = type_instructions.get(campaign_type, type_instructions["refill_reminder"])
 

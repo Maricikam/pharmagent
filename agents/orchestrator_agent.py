@@ -73,7 +73,15 @@ TOOLS = [
     },
     {
         "name": "run_patient_engagement",
-        "description": "Contact patients who are due for prescription refills. Sends personalised reminders via SMS or email. Use when asked about patient outreach, reminders, or refills.",
+        "description": (
+            "Contact patients with personalised messages. Supports multiple campaign types: "
+            "refill_reminder (prescription due soon), adherence_check (missed collection), "
+            "flu_vaccination (invite for NHS flu jab), spring_allergies (hay fever season), "
+            "winter_wellness (cold/flu, vitamin D), travel_health (pre-trip medication advice), "
+            "new_year_health (medicines review invitation), photosensitivity_summer (sun safety for at-risk meds), "
+            "seasonal (general seasonal health check). Use when asked about patient outreach, reminders, "
+            "vaccinations, seasonal campaigns, or any proactive patient communication."
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
@@ -85,6 +93,21 @@ TOOLS = [
                     "type": "string",
                     "enum": ["sms", "email"],
                     "description": "Communication channel to use",
+                },
+                "campaign_type": {
+                    "type": "string",
+                    "enum": [
+                        "refill_reminder",
+                        "adherence_check",
+                        "seasonal",
+                        "flu_vaccination",
+                        "spring_allergies",
+                        "winter_wellness",
+                        "travel_health",
+                        "new_year_health",
+                        "photosensitivity_summer",
+                    ],
+                    "description": "Type of campaign to run (default: refill_reminder)",
                 },
             },
             "required": [],
@@ -150,7 +173,8 @@ def run_orchestrator(pharmacist_request: str) -> str:
             elif tool_name == "run_patient_engagement":
                 days = tool_input.get("days_ahead", 7)
                 channel = tool_input.get("channel", "sms")
-                engagement = run_engagement_campaign(days_ahead=days, channel=channel)
+                campaign_type = tool_input.get("campaign_type", "refill_reminder")
+                engagement = run_engagement_campaign(days_ahead=days, channel=channel, campaign_type=campaign_type)
                 result = f"Contacted {engagement['patients_contacted']} patients via {channel}."
                 if engagement["results"]:
                     result += "\nMessages sent:\n"
