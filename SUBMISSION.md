@@ -62,6 +62,8 @@ Four skills connect PharmAgent to any chat app via OpenClaw:
 
 The morning briefing skill can be scheduled as a daily cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
 
+> **Note for judges running locally:** The SKILL.md files point to the Railway deployment URL. If self-hosting, update the base URL in each skill file or set the `PHARMAGENT_API_URL` environment variable.
+
 ## Live demo
 
 | | |

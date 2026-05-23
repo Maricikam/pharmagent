@@ -9,14 +9,19 @@ import string
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends, Security
+from fastapi import FastAPI, HTTPException, Depends, Security, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
+
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="PharmAgent AI",
@@ -30,6 +35,9 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -259,7 +267,8 @@ def interaction_check_get(nhs_number: str, new_medication_name: str):
 
 
 @app.post("/agents/interaction-check", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def interaction_check(req: InteractionCheckRequest):
+@limiter.limit("30/minute")
+def interaction_check(request: Request, req: InteractionCheckRequest):
     """Run the Interaction Safety Agent for a patient."""
     if not _has_api_key():
         return {"mode": "demo", "report": demo()["agents"]["interaction_safety_agent"]}
@@ -307,7 +316,8 @@ def stock_review_get():
 
 
 @app.post("/agents/stock-review", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def stock_review():
+@limiter.limit("30/minute")
+def stock_review(request: Request):
     """Run the Stock Intelligence Agent."""
     if not _has_api_key():
         return {"mode": "demo", "result": demo()["agents"]["stock_intelligence_agent"]}
@@ -326,7 +336,8 @@ def engagement_campaign_get(campaign_type: str = "refill_reminder"):
 
 
 @app.post("/agents/engagement-campaign", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def engagement_campaign(req: EngagementRequest):
+@limiter.limit("30/minute")
+def engagement_campaign(request: Request, req: EngagementRequest):
     if not _has_api_key():
         return {"mode": "demo", "result": demo()["agents"]["patient_engagement_agent"]}
     try:
@@ -338,7 +349,8 @@ def engagement_campaign(req: EngagementRequest):
 
 
 @app.post("/agents/orchestrate", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def orchestrate(req: OrchestrateRequest):
+@limiter.limit("30/minute")
+def orchestrate(request: Request, req: OrchestrateRequest):
     """Send a plain-English intent to the Orchestrator Agent."""
     if not _has_api_key():
         return {"mode": "demo", "intent": req.intent, "demo_output": demo()}
