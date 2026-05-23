@@ -25,10 +25,20 @@ Data residency:
     infrastructure (NFR-01 compliant).
 """
 
+import re
 import anthropic
 import json
 from tools.pharmacy_tools import get_patient_by_nhs, get_active_prescriptions, log_audit_event
 from config import MODEL
+
+
+def _strip_md(text: str) -> str:
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    text = re.sub(r'^#{1,3}\s*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^-{3,}$', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 # ---------------------------------------------------------------------------
 # DETERMINISTIC INTERACTION RULES TABLE
@@ -214,7 +224,7 @@ Please analyse the active medications{f' against the new medication ({new_medica
     log_audit_event(
         agent="InteractionSafetyAgent",
         action="INTERACTION_CHECK",
-        details=f"Patient: {patient['name']} ({nhs_number}) | New med: {new_medication or 'N/A'} | Result: {result[:150]}",
+        details=f"Patient: {patient['name']} ({nhs_number}) | New med: {new_medication or 'N/A'} | Result: {_strip_md(result)[:200]}",
         patient_id=patient["id"],
     )
 
