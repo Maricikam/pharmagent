@@ -382,6 +382,109 @@ def audit_logs(limit: int = 50):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/agents/patient-profile", tags=["Agents"], dependencies=[Depends(require_api_key)])
+def patient_profile(nhs_number: str = None, name: str = None):
+    """Look up a patient's full medication profile by CHI number or name."""
+    try:
+        from tools.pharmacy_tools import get_patient_by_nhs, get_patient_by_name, get_active_prescriptions
+        if not nhs_number and not name:
+            raise HTTPException(status_code=422, detail="Provide nhs_number or name.")
+        if name and not nhs_number:
+            matches = get_patient_by_name(name)
+            if not matches:
+                raise HTTPException(status_code=404, detail=f"No patient found matching '{name}'.")
+            if len(matches) > 1:
+                return {"multiple_matches": matches}
+            nhs_number = matches[0]["nhs_number"]
+        patient = get_patient_by_nhs(nhs_number)
+        if "error" in patient:
+            raise HTTPException(status_code=404, detail=patient["error"])
+        prescriptions = get_active_prescriptions(patient["id"])
+        return {
+            "patient": patient,
+            "active_prescriptions": prescriptions,
+            "prescription_count": len(prescriptions),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/agents/handover", tags=["Agents"], dependencies=[Depends(require_api_key)])
+@limiter.limit("10/minute")
+def handover(request: Request):
+    """Generate a shift handover briefing for the incoming pharmacist."""
+    if not _has_api_key():
+        return {"mode": "demo", "note": "Handover agent requires a live API key."}
+    try:
+        from agents.handover_agent import generate_handover
+        return {"mode": "live", "result": generate_handover()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class EmergencySupplyRequest(BaseModel):
+    medication: str
+    quantity: int
+    reason: str
+    nhs_number: Optional[str] = None
+    patient_name: Optional[str] = None
+    prescriber_contacted: bool = False
+
+    @field_validator("nhs_number")
+    @classmethod
+    def validate_chi(cls, v):
+        if v is None:
+            return v
+        try:
+            return _validate_chi(v)
+        except ValueError as e:
+            raise ValueError(str(e)) from e
+
+
+@app.post("/agents/emergency-supply", tags=["Agents"], dependencies=[Depends(require_api_key)])
+@limiter.limit("20/minute")
+def emergency_supply(request: Request, req: EmergencySupplyRequest):
+    """Generate an emergency supply record with interaction check and audit log."""
+    if not _has_api_key():
+        return {"mode": "demo", "note": "Emergency supply agent requires a live API key."}
+    if not req.nhs_number and not req.patient_name:
+        raise HTTPException(status_code=422, detail="Provide nhs_number or patient_name.")
+    try:
+        from agents.emergency_supply_agent import process_emergency_supply
+        result = process_emergency_supply(
+            medication=req.medication,
+            quantity=req.quantity,
+            reason=req.reason,
+            nhs_number=req.nhs_number,
+            patient_name=req.patient_name,
+            prescriber_contacted=req.prescriber_contacted,
+        )
+        if "error" in result:
+            status = 409 if result["error"] == "multiple_patients" else 404
+            raise HTTPException(status_code=status, detail=result)
+        return {"mode": "live", "result": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/agents/emergency-supply", tags=["Agents"], dependencies=[Depends(require_api_key)])
+@limiter.limit("20/minute")
+def emergency_supply_get(request: Request, medication: str, quantity: int, reason: str,
+                          nhs_number: str = None, patient_name: str = None,
+                          prescriber_contacted: bool = False):
+    """GET version for OpenClaw compatibility."""
+    req = EmergencySupplyRequest(
+        medication=medication, quantity=quantity, reason=reason,
+        nhs_number=nhs_number, patient_name=patient_name,
+        prescriber_contacted=prescriber_contacted,
+    )
+    return emergency_supply(request, req)
+
+
 @app.post("/agents/orchestrate", tags=["Agents"], dependencies=[Depends(require_api_key)])
 @limiter.limit("30/minute")
 def orchestrate(request: Request, req: OrchestrateRequest):

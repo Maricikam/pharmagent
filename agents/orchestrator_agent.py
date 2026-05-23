@@ -40,7 +40,9 @@ import json
 from agents.interaction_safety_agent import check_interactions
 from agents.stock_intelligence_agent import run_stock_review
 from agents.patient_engagement_agent import run_engagement_campaign
-from tools.pharmacy_tools import log_audit_event, get_patient_by_name
+from agents.handover_agent import generate_handover
+from agents.emergency_supply_agent import process_emergency_supply
+from tools.pharmacy_tools import log_audit_event, get_patient_by_name, get_patient_by_nhs, get_active_prescriptions
 from config import MODEL
 MAX_TURNS = 5
 
@@ -91,6 +93,39 @@ TOOLS = [
             "type": "object",
             "properties": {},
             "required": [],
+        },
+    },
+    {
+        "name": "get_patient_profile",
+        "description": "Get a patient's full medication profile. Use when asked what a patient is currently on, their prescription list, or their medication history. Requires either a CHI number or a patient name.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "nhs_number": {"type": "string", "description": "Patient's 10-digit CHI number (use if known)"},
+                "name": {"type": "string", "description": "Patient name — will be resolved via lookup_patient if CHI not available"},
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "generate_handover",
+        "description": "Generate a shift handover briefing for the incoming pharmacist. Use when asked for end-of-shift notes, handover, or a summary of what happened this shift.",
+        "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
+        "name": "process_emergency_supply",
+        "description": "Process an emergency medication supply request. Generates a legal NHS supply record with interaction check. Use when a patient has run out of medication and cannot reach their GP.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "medication": {"type": "string", "description": "Medication name and strength (e.g. 'Warfarin 5mg')"},
+                "quantity": {"type": "integer", "description": "Number of units to supply"},
+                "reason": {"type": "string", "description": "Reason for emergency supply"},
+                "nhs_number": {"type": "string", "description": "Patient CHI number (optional if name provided)"},
+                "patient_name": {"type": "string", "description": "Patient name (optional if CHI provided)"},
+                "prescriber_contacted": {"type": "boolean", "description": "Whether the prescriber was contacted (default false)"},
+            },
+            "required": ["medication", "quantity", "reason"],
         },
     },
     {
@@ -146,11 +181,14 @@ Your job is to:
 
 Available tools:
 - lookup_patient: resolve a patient name to a CHI number — always use this first if no CHI is provided
-- check_drug_interactions: for patient-specific medication safety checks (requires CHI number)
-- run_stock_review: for inventory management
-- run_patient_engagement: for patient refill reminders
+- get_patient_profile: return a patient's full active medication list
+- check_drug_interactions: patient-specific medication safety check (requires CHI number)
+- run_stock_review: inventory management, low stock, expiry, reorders
+- run_patient_engagement: patient refill reminders and outreach campaigns
+- generate_handover: shift handover note for the incoming pharmacist
+- process_emergency_supply: emergency medication supply with legal record and interaction check
 
-If the pharmacist refers to a patient by name only, call lookup_patient first to get the CHI number, then proceed with check_drug_interactions. If lookup returns multiple matches, list them and ask the pharmacist to clarify.
+If the pharmacist refers to a patient by name only, call lookup_patient first to get the CHI number, then proceed. If lookup returns multiple matches, list them and ask the pharmacist to clarify.
 
 OUTPUT FORMAT — strictly follow this style:
 - Write in a professional NHS clinical tone, as you would in a handover report or dispensing log
@@ -213,6 +251,45 @@ def run_orchestrator(pharmacist_request: str) -> str:
                     new_medication=tool_input.get("new_medication"),
                 )
                 agent_results["interaction_check"] = result
+
+            elif tool_name == "get_patient_profile":
+                nhs = tool_input.get("nhs_number")
+                name = tool_input.get("name")
+                if not nhs and name:
+                    matches = get_patient_by_name(name)
+                    if matches:
+                        nhs = matches[0]["nhs_number"]
+                if nhs:
+                    patient = get_patient_by_nhs(nhs)
+                    rxs = get_active_prescriptions(patient["id"]) if "error" not in patient else []
+                    meds = ", ".join(f"{r['medication']} {r['dosage']}" for r in rxs) or "none"
+                    result = (
+                        f"Patient: {patient.get('name')} | CHI: {nhs} | DOB: {patient.get('date_of_birth')}\n"
+                        f"Active medications ({len(rxs)}): {meds}"
+                    )
+                else:
+                    result = "Could not resolve patient. Provide CHI number or full name."
+                agent_results["patient_profile"] = result
+
+            elif tool_name == "generate_handover":
+                handover = generate_handover()
+                result = handover["note"]
+                agent_results["handover"] = result
+
+            elif tool_name == "process_emergency_supply":
+                supply = process_emergency_supply(
+                    medication=tool_input["medication"],
+                    quantity=tool_input["quantity"],
+                    reason=tool_input["reason"],
+                    nhs_number=tool_input.get("nhs_number"),
+                    patient_name=tool_input.get("patient_name"),
+                    prescriber_contacted=tool_input.get("prescriber_contacted", False),
+                )
+                if "error" in supply:
+                    result = supply["message"]
+                else:
+                    result = supply["record"]
+                agent_results["emergency_supply"] = result
 
             elif tool_name == "run_stock_review":
                 stock = run_stock_review()
