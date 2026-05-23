@@ -8,9 +8,9 @@ PharmAgent ships four OpenClaw skills that let you control the pharmacy system d
 
 | Skill | What it does |
 |---|---|
-| `pharmagent-interaction-check` | Check a patient's medications for interaction risks before dispensing |
+| `pharmagent-interaction-check` | Check a patient's medications for interaction risks before dispensing. Backed by 80 validated DDI records (DrugBank 6.0 / Micromedex) — returns safer alternatives and specific management steps, not just a severity label. |
 | `pharmagent-stock-review` | Review stock levels, flag expiry, trigger supplier reorders |
-| `pharmagent-patient-engagement` | Send personalised SMS refill reminders to patients |
+| `pharmagent-patient-engagement` | Send personalised SMS refill reminders, prioritised by adherence risk. High-risk patients (elderly, complex regimens, mental health medications) are contacted first and receive more supportive messaging. |
 | `pharmagent-daily-briefing` | Full orchestrated daily workflow — stock review, expiry check, patient reminders |
 
 ---
@@ -118,6 +118,7 @@ PharmAgent is built on the same architectural principles as OpenClaw:
 
 | Layer | PharmAgent | OpenClaw equivalent |
 |---|---|---|
+| Knowledge layer | 80 DDI records + 5,000-record adherence dataset — loaded at agent startup | OpenClaw knowledge base / tool context |
 | Tool layer | Deterministic DB queries, stock checks, audit logging | OpenClaw tool plugins |
 | Agent layer | Claude-powered reasoning agents | OpenClaw agent turns |
 | Orchestration | OrchestratorAgent coordinates sub-agents | OpenClaw multi-agent + sub-agents |
