@@ -240,7 +240,8 @@ def interaction_check(req: InteractionCheckRequest):
         if "error" in patient:
             raise HTTPException(status_code=404, detail=patient["error"])
         prescriptions = get_active_prescriptions(patient["id"])
-        result = check_interactions(req.nhs_number, req.new_medication_name)
+        result = check_interactions(req.nhs_number, req.new_medication_name,
+                                    _patient=patient, _prescriptions=prescriptions)
         return {
             "mode": "live",
             "report": {

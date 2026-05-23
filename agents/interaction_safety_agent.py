@@ -170,13 +170,14 @@ Respond in clean markdown using these sections:
 """
 
 
-def check_interactions(nhs_number: str, new_medication: str = None) -> str:
+def check_interactions(nhs_number: str, new_medication: str = None,
+                       _patient: dict = None, _prescriptions: list = None) -> str:
     client = anthropic.Anthropic()
-    patient = get_patient_by_nhs(nhs_number)
+    patient = _patient if _patient is not None else get_patient_by_nhs(nhs_number)
     if "error" in patient:
         return patient["error"]
 
-    prescriptions = get_active_prescriptions(patient["id"])
+    prescriptions = _prescriptions if _prescriptions is not None else get_active_prescriptions(patient["id"])
     if not prescriptions:
         return f"No active prescriptions found for {patient['name']}."
 
