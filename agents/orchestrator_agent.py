@@ -42,6 +42,9 @@ from agents.stock_intelligence_agent import run_stock_review
 from agents.patient_engagement_agent import run_engagement_campaign
 from tools.pharmacy_tools import log_audit_event
 
+MODEL = "claude-haiku-4-5-20251001"
+MAX_TURNS = 5
+
 client = anthropic.Anthropic()
 
 TOOLS = [
@@ -113,14 +116,16 @@ def run_orchestrator(pharmacist_request: str) -> str:
     agent_results = {}
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=MODEL,
         max_tokens=1000,
         system=ORCHESTRATOR_SYSTEM,
         tools=TOOLS,
         messages=messages,
     )
 
-    while response.stop_reason == "tool_use":
+    turns = 0
+    while response.stop_reason == "tool_use" and turns < MAX_TURNS:
+        turns += 1
         tool_results = []
 
         for block in response.content:
@@ -166,7 +171,7 @@ def run_orchestrator(pharmacist_request: str) -> str:
         messages.append({"role": "user", "content": tool_results})
 
         response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=MODEL,
             max_tokens=1500,
             system=ORCHESTRATOR_SYSTEM,
             tools=TOOLS,
@@ -206,7 +211,7 @@ if __name__ == "__main__":
 
     print("\n[Demo 2] Patient-specific interaction check")
     result2 = run_orchestrator(
-        "I need to check Margaret Campbell — NHS number 4823719056 — "
+        "I need to check Margaret Campbell — CHI number 1203480016 — "
         "before I dispense her prescription. Any interaction concerns?"
     )
     print("\n📋 Orchestrator Summary:")

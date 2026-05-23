@@ -3,7 +3,7 @@ PharmAgent AI — Test Suite
 Run: pytest tests/ -v
 """
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 from db.database import init_db, SessionLocal
 from db.models import Patient, Medication, StockItem, Prescription, AuditLog
 from datetime import datetime, timedelta
@@ -295,3 +295,96 @@ class TestPatientEngagementAgent:
         from agents.patient_engagement_agent import run_engagement_campaign
         result = run_engagement_campaign(days_ahead=0, channel="sms")
         assert result["patients_contacted"] == 0
+
+
+class TestOrchestratorAgent:
+    """
+    Tests the agentic loop: Claude returns tool_use → tools execute →
+    results fed back → Claude returns final text.
+    """
+
+    def _make_tool_block(self, name, tool_id, input_data=None):
+        block = MagicMock()
+        block.type = "tool_use"
+        block.name = name
+        block.input = input_data or {}
+        block.id = tool_id
+        return block
+
+    def _make_text_response(self, text):
+        text_block = MagicMock()
+        text_block.type = "text"
+        text_block.text = text
+        response = MagicMock()
+        response.stop_reason = "end_turn"
+        response.content = [text_block]
+        return response
+
+    @patch("agents.orchestrator_agent.run_stock_review")
+    @patch("agents.orchestrator_agent.client")
+    def test_routes_stock_request_to_stock_agent(self, mock_client, mock_stock):
+        mock_stock.return_value = {"analysis": "5 items low", "orders_placed": []}
+
+        tool_response = MagicMock()
+        tool_response.stop_reason = "tool_use"
+        tool_response.content = [self._make_tool_block("run_stock_review", "tu_001")]
+
+        final_response = self._make_text_response("Stock review complete. 5 items need reordering.")
+        mock_client.messages.create.side_effect = [tool_response, final_response]
+
+        from agents.orchestrator_agent import run_orchestrator
+        result = run_orchestrator("What's running low on stock?")
+
+        assert isinstance(result, str)
+        assert len(result) > 0
+        mock_stock.assert_called_once()
+        assert mock_client.messages.create.call_count == 2
+
+    @patch("agents.orchestrator_agent.run_engagement_campaign")
+    @patch("agents.orchestrator_agent.run_stock_review")
+    @patch("agents.orchestrator_agent.client")
+    def test_morning_briefing_calls_multiple_agents(self, mock_client, mock_stock, mock_engagement):
+        mock_stock.return_value = {"analysis": "All good", "orders_placed": []}
+        mock_engagement.return_value = {"patients_contacted": 3, "results": []}
+
+        stock_block = self._make_tool_block("run_stock_review", "tu_001")
+        engagement_block = self._make_tool_block("run_patient_engagement", "tu_002", {"days_ahead": 7, "channel": "sms"})
+
+        tool_response = MagicMock()
+        tool_response.stop_reason = "tool_use"
+        tool_response.content = [stock_block, engagement_block]
+
+        final_response = self._make_text_response("Morning briefing complete. Stock healthy. 3 patients contacted.")
+        mock_client.messages.create.side_effect = [tool_response, final_response]
+
+        from agents.orchestrator_agent import run_orchestrator
+        result = run_orchestrator("Good morning, run the daily pharmacy check.")
+
+        assert isinstance(result, str)
+        mock_stock.assert_called_once()
+        mock_engagement.assert_called_once()
+
+    @patch("agents.orchestrator_agent.client")
+    def test_respects_max_turns_guard(self, mock_client):
+        """Orchestrator must not loop indefinitely if Claude keeps requesting tools."""
+        tool_response = MagicMock()
+        tool_response.stop_reason = "tool_use"
+        tool_response.content = []
+
+        # Always return tool_use — guard must break the loop
+        mock_client.messages.create.return_value = tool_response
+
+        from agents.orchestrator_agent import run_orchestrator, MAX_TURNS
+        result = run_orchestrator("Loop me forever.")
+
+        assert mock_client.messages.create.call_count <= MAX_TURNS + 1
+
+    @patch("agents.orchestrator_agent.client")
+    def test_returns_string(self, mock_client):
+        mock_client.messages.create.return_value = self._make_text_response(
+            "No urgent issues. All systems normal."
+        )
+        from agents.orchestrator_agent import run_orchestrator
+        result = run_orchestrator("Quick status check.")
+        assert isinstance(result, str)
+        assert len(result) > 0
