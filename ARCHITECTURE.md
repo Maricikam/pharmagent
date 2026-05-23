@@ -68,7 +68,9 @@ Three specialist agents, each with a bounded domain of responsibility. Each agen
 
 Receives a patient's NHS number and a new medication name. Fetches their active prescription list via the tool layer, then uses Claude to cross-reference for contraindications, assess severity, and produce a structured clinical recommendation.
 
-**Output:** Risk report with severity (LOW / MEDIUM / HIGH), mechanism of interaction, and dispensing recommendation. Always requires pharmacist sign-off.
+At startup the agent loads 80 validated drug-drug interaction records from `data/Interaction Safety Agent.json` (DrugBank 6.0, Micromedex, FDA Drug Safety Communications). These replace the hardcoded severity table and provide richer context: for each detected pair Claude receives the full mechanism, clinical effect, safer alternative, and management steps — not just a severity label. Falls back to hardcoded rules when the file is absent (Railway deployment).
+
+**Output:** Risk report with severity (LOW / MODERATE / HIGH), mechanism of interaction, evidence-based management steps, and dispensing recommendation. Always requires pharmacist sign-off.
 
 ### Stock Intelligence Agent
 **File:** `agents/stock_intelligence_agent.py`
@@ -80,9 +82,11 @@ Reviews current inventory state via the tool layer. Uses Claude to prioritise re
 ### Patient Engagement Agent
 **File:** `agents/patient_engagement_agent.py`
 
-Identifies patients with upcoming prescription due dates. Uses Claude to generate a personalised message for each patient — tailored to their specific medication, name, and history — rather than sending a generic template.
+Identifies patients with upcoming prescription due dates. Before generating messages, scores each patient's adherence risk using population statistics derived from `data/patient_adherence_dataset.csv` (5,000 records). Non-adherence rates by age band and comorbidity count are calculated at startup; a mental health medication proxy adds an 11 percentage point uplift where applicable. Patients are sorted highest-risk first, and the risk level (HIGH / MEDIUM / LOW) is passed into the Claude prompt so message tone adapts accordingly.
 
-**Output:** Campaign summary with per-patient message previews and delivery status.
+Uses Claude to generate a personalised message for each patient — tailored to their specific medication, name, history, and adherence risk — rather than sending a generic template.
+
+**Output:** Campaign summary with per-patient message previews, delivery status, adherence risk scores, and risk factors per patient.
 
 ---
 
@@ -97,7 +101,7 @@ The Orchestrator accepts plain English from a pharmacist and coordinates the spe
 Input:  "Good morning. Check stock and send reminders to patients due this week."
 Action: → StockIntelligenceAgent (stock review + reorders)
         → PatientEngagementAgent (7-day window, SMS channel)
-Output: Unified morning briefing combining both agent reports
+Output: Unified daily briefing combining both agent reports
 ```
 
 The Orchestrator is the single entry point for all natural language requests, whether they come from the FastAPI endpoint or via OpenClaw skills.
@@ -137,6 +141,19 @@ FastAPI application exposing all agent functionality as HTTP endpoints. Includes
 - `GET /audit/logs` — recent audit trail entries (NFR-04 compliance)
 
 **Live:** https://web-production-1f27a.up.railway.app
+
+---
+
+## Datasets
+
+Two validated clinical datasets are loaded at agent startup and excluded from the repository (`.gitignore`). The system falls back to hardcoded equivalents on Railway where the `data/` folder is absent.
+
+| File | Records | Source | Used by |
+|---|---|---|---|
+| `data/Interaction Safety Agent.json` | 80 | DrugBank 6.0, Micromedex, FDA Drug Safety Communications | InteractionSafetyAgent |
+| `data/patient_adherence_dataset.csv` | 5,000 | Patient adherence study (14 demographic and clinical features) | PatientEngagementAgent |
+
+**Why this matters architecturally:** The datasets sit outside the tool layer (which is purely deterministic DB access) and outside the data layer (which is transactional patient data). They form a separate read-only knowledge layer loaded once at agent startup — consistent with the principle that Claude operates on well-structured context rather than raw data. The tool layer remains unchanged; all dataset logic lives in the agents themselves.
 
 ---
 
