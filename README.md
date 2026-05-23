@@ -155,6 +155,11 @@ All data endpoints require an `X-API-Key` header if `API_KEY` is set in the envi
 ## Running tests
 
 ```bash
+# Tool layer tests run without any API key
+pytest tests/TestToolLayer -v
+
+# Agent tests require a live API key
+export ANTHROPIC_API_KEY=your-key-here   # Windows: set ANTHROPIC_API_KEY=...
 pytest tests/ -v
 ```
 

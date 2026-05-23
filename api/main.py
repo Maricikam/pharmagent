@@ -3,6 +3,7 @@ api/main.py — PharmAgent AI FastAPI application.
 """
 
 import os
+import re
 import random
 import string
 from datetime import datetime, timedelta
@@ -57,6 +58,17 @@ def _ts() -> str:
 
 def _has_api_key() -> bool:
     return bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
+
+
+def _parse_risk_level(text: str) -> str:
+    t = text.upper()
+    if "DO NOT DISPENSE" in t or re.search(r"\|\s*HIGH\s*\|", t):
+        return "HIGH"
+    if re.search(r"\|\s*MODERATE\s*\|", t) or "PHARMACIST REVIEW" in t:
+        return "MODERATE"
+    if "SAFE TO DISPENSE" in t:
+        return "LOW"
+    return "MODERATE"
 
 
 @app.get("/health", tags=["System"])
@@ -243,7 +255,7 @@ def interaction_check(req: InteractionCheckRequest):
                 ],
                 "new_medication": req.new_medication_name,
                 "interaction_report": {
-                    "risk_level": "HIGH" if "CRITICAL" in result or "DO NOT" in result else "MODERATE" if "REVIEW" in result else "LOW",
+                    "risk_level": _parse_risk_level(result),
                     "interactions_detected": [],
                     "clinical_decision": result,
                     "audit_ref": _ref(),

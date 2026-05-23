@@ -7,6 +7,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
+from unittest.mock import patch, MagicMock
 from db.database import init_db, SessionLocal
 from db.models import Patient, Medication, StockItem, Prescription, AuditLog
 from datetime import datetime, timedelta
@@ -70,6 +71,15 @@ def setup_db(tmp_path, monkeypatch):
     db.commit()
     db.close()
     yield
+
+
+def _make_mock_anthropic(response_text: str):
+    """Return a patched anthropic.Anthropic whose messages.create returns response_text."""
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = MagicMock(
+        content=[MagicMock(text=response_text)]
+    )
+    return MagicMock(return_value=mock_client)
 
 
 class TestToolLayer:
@@ -137,60 +147,143 @@ class TestToolLayer:
 
 
 class TestInteractionSafetyAgent:
-    def test_returns_string(self):
+    _MOCK_REPORT = (
+        "# INTERACTION SAFETY ASSESSMENT\n"
+        "**Patient:** Test Patient (DOB: 1960-01-01) | **CHI:** 1234567890\n"
+        "---\n"
+        "## ACTIVE MEDICATIONS\n"
+        "1. Warfarin 5mg — Once daily\n"
+        "2. Aspirin 75mg — Once daily\n"
+        "---\n"
+        "## INTERACTION ANALYSIS\n"
+        "| Drug Pair | Severity | Clinical Rationale |\n"
+        "|---|---|---|\n"
+        "| Warfarin + Ibuprofen | HIGH | NSAID displaces warfarin; major bleed risk |\n"
+        "---\n"
+        "## RECOMMENDATION\n"
+        "⛔ **DO NOT DISPENSE WITHOUT CONSULTATION**\n"
+        "**Actions before dispensing:**\n"
+        "- Contact prescriber immediately\n\n"
+        "**Status:** HIGH risk — pharmacist review required before dispensing."
+    )
+
+    @patch("anthropic.Anthropic")
+    def test_returns_string(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_REPORT)]
+        )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("1234567890")
         assert isinstance(result, str)
         assert len(result) > 10
 
-    def test_patient_not_found(self):
+    @patch("anthropic.Anthropic")
+    def test_patient_not_found(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_REPORT)]
+        )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("0000000000")
         assert "No patient found" in result or "error" in result.lower()
 
-    def test_contains_medication_names(self):
+    @patch("anthropic.Anthropic")
+    def test_contains_medication_names(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_REPORT)]
+        )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("1234567890")
         assert any(m in result.lower() for m in ["warfarin", "aspirin"])
 
+    @patch("anthropic.Anthropic")
+    def test_high_risk_detected(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_REPORT)]
+        )
+        from agents.interaction_safety_agent import check_interactions
+        result = check_interactions("1234567890", "Ibuprofen")
+        assert "HIGH" in result or "DO NOT" in result
+
 
 class TestStockIntelligenceAgent:
-    def test_returns_dict_with_analysis(self):
+    _MOCK_ANALYSIS = (
+        "## Stock Review\n\n"
+        "**IMMEDIATE ACTION REQUIRED:**\n"
+        "- REORDER Warfarin 5mg | 200 units | TestSupplier\n\n"
+        "**Near Expiry:**\n"
+        "- Aspirin 75mg — expires in 15 days. Consider discounting.\n\n"
+        "**Priority:** Reorder Warfarin today."
+    )
+
+    @patch("anthropic.Anthropic")
+    def test_returns_dict_with_analysis(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_ANALYSIS)]
+        )
         from agents.stock_intelligence_agent import run_stock_review
         result = run_stock_review()
         assert isinstance(result, dict)
         assert "analysis" in result
         assert isinstance(result["analysis"], str)
 
-    def test_detects_low_stock(self):
+    @patch("anthropic.Anthropic")
+    def test_detects_low_stock(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_ANALYSIS)]
+        )
         from agents.stock_intelligence_agent import run_stock_review
         result = run_stock_review()
         assert result["low_stock_count"] == 1
 
-    def test_detects_expiring(self):
+    @patch("anthropic.Anthropic")
+    def test_detects_expiring(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_ANALYSIS)]
+        )
         from agents.stock_intelligence_agent import run_stock_review
         result = run_stock_review()
         assert result["expiring_count"] == 1
 
-    def test_auto_orders_critical_low_stock(self):
+    @patch("anthropic.Anthropic")
+    def test_auto_orders_critical_low_stock(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_ANALYSIS)]
+        )
         from agents.stock_intelligence_agent import run_stock_review
         result = run_stock_review()
         assert len(result["orders_placed"]) >= 1
 
 
 class TestPatientEngagementAgent:
-    def test_returns_dict(self):
+    _MOCK_MESSAGE = (
+        "Hi Test, your Warfarin 5mg prescription is due in 3 days. "
+        "Please call Renfrew Road Pharmacy on 0141 555 0199."
+    )
+
+    @patch("anthropic.Anthropic")
+    def test_returns_dict(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_MESSAGE)]
+        )
         from agents.patient_engagement_agent import run_engagement_campaign
         result = run_engagement_campaign(days_ahead=7, channel="sms")
         assert isinstance(result, dict)
         assert "patients_contacted" in result
 
-    def test_contacts_due_patients(self):
+    @patch("anthropic.Anthropic")
+    def test_contacts_due_patients(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_MESSAGE)]
+        )
         from agents.patient_engagement_agent import run_engagement_campaign
         result = run_engagement_campaign(days_ahead=7, channel="sms")
         assert result["patients_contacted"] >= 1
 
-    def test_message_content(self):
+    @patch("anthropic.Anthropic")
+    def test_message_content(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_MESSAGE)]
+        )
         from agents.patient_engagement_agent import run_engagement_campaign
         result = run_engagement_campaign(days_ahead=7, channel="sms")
         if result["results"]:
@@ -198,7 +291,11 @@ class TestPatientEngagementAgent:
             assert isinstance(msg, str)
             assert len(msg) > 10
 
-    def test_no_patients_outside_window(self):
+    @patch("anthropic.Anthropic")
+    def test_no_patients_outside_window(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_MESSAGE)]
+        )
         from agents.patient_engagement_agent import run_engagement_campaign
         result = run_engagement_campaign(days_ahead=0, channel="sms")
         assert result["patients_contacted"] == 0
