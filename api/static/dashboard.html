@@ -175,6 +175,24 @@
   .briefing-result ol { padding-left: 16px; margin: 4px 0 8px; }
   .briefing-result ol li { margin: 4px 0; }
   .briefing-result hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0; }
+  .btn-download { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.2); background: transparent; color: #fff; display: none; align-items: center; gap: 6px; margin-top: 10px; margin-left: 8px; font-family: inherit; transition: all 0.15s; }
+  .btn-download:hover { background: rgba(255,255,255,0.1); }
+  .btn-download.show { display: inline-flex; }
+  @media print {
+    body { background: #fff; color: #000; }
+    .topbar, .demo-banner, .nav, .briefing-icon, .briefing-sub, .briefing-meta,
+    .btn-briefing, .btn-download, #interaction, #stock, #patient, #engagement, #audit,
+    .modal-overlay, .toast { display: none !important; }
+    .main { max-width: 100%; margin: 0; padding: 1cm; }
+    .briefing-card { background: #fff; border-radius: 0; padding: 0; color: #000; }
+    .briefing-title { font-size: 20px; color: #000; border-bottom: 2px solid #1D9E75; padding-bottom: 8px; margin-bottom: 16px; }
+    .briefing-result { display: block !important; background: #fff; border: none; color: #000; padding: 0; margin-top: 0; white-space: normal; }
+    .briefing-result .c-section { color: #374151; }
+    .briefing-result p, .briefing-result li { color: #000; }
+    .briefing-result hr { border-top: 1px solid #e5e9f0; }
+    .print-header { display: block !important; }
+  }
+  .print-header { display: none; font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -235,9 +253,15 @@
       </div>
       <span class="briefing-meta" id="briefing-last-run"></span>
     </div>
-    <button class="btn-briefing" id="briefing-btn" onclick="runMorningBriefing()">
-      <i class="ti ti-player-play"></i> Run full briefing
-    </button>
+    <div style="display:flex;align-items:center;flex-wrap:wrap">
+      <button class="btn-briefing" id="briefing-btn" onclick="runMorningBriefing()">
+        <i class="ti ti-player-play"></i> Run full briefing
+      </button>
+      <button class="btn-download" id="download-btn" onclick="window.print()">
+        <i class="ti ti-download"></i> Download PDF
+      </button>
+    </div>
+    <div class="print-header" id="print-header"></div>
     <div class="briefing-result" id="briefing-result"></div>
   </div>
 
@@ -827,7 +851,10 @@ async function runMorningBriefing() {
     if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
     const text = data.response || data.demo_output || 'No response received.';
     result.innerHTML = renderClinicalText(typeof text === 'string' ? text : JSON.stringify(text, null, 2));
-    lastRun.textContent = 'Last run: ' + new Date().toLocaleTimeString('en-GB');
+    const now = new Date();
+    lastRun.textContent = 'Last run: ' + now.toLocaleTimeString('en-GB');
+    document.getElementById('download-btn').classList.add('show');
+    document.getElementById('print-header').textContent = 'PharmAgent AI — Daily Briefing Report — Generated ' + now.toLocaleString('en-GB');
   } catch(e) {
     result.innerHTML = `<span style="color:#f87171"><i class="ti ti-alert-circle"></i> ${e.message || 'Error running briefing.'}</span>`;
   }
