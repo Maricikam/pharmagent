@@ -41,8 +41,7 @@ from agents.interaction_safety_agent import check_interactions
 from agents.stock_intelligence_agent import run_stock_review
 from agents.patient_engagement_agent import run_engagement_campaign
 from tools.pharmacy_tools import log_audit_event
-
-MODEL = "claude-haiku-4-5-20251001"
+from config import MODEL
 MAX_TURNS = 5
 
 client = anthropic.Anthropic()

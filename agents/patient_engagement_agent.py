@@ -34,6 +34,7 @@ import json
 from datetime import datetime
 from tools.pharmacy_tools import (get_patients_due_refill, get_active_prescriptions,
                                    send_patient_message, log_audit_event)
+from config import MODEL
 
 SYSTEM_PROMPT = """You are the Patient Engagement Agent for PharmAgent AI, a community pharmacy in Scotland.
 
@@ -107,7 +108,7 @@ Channel: {channel} ({'max 160 characters' if channel == 'sms' else 'short friend
 Return ONLY the message text itself — no preamble, no markdown, no character count, no "Here's an SMS..." introduction. Just the message the patient would receive.
 """
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=MODEL,
         max_tokens=300,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": prompt}],

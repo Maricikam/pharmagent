@@ -29,6 +29,7 @@ import anthropic
 import json
 from tools.pharmacy_tools import (get_low_stock_items, get_expiring_stock,
                                    place_reorder, log_audit_event)
+from config import MODEL
 
 SYSTEM_PROMPT = """You are the Stock Intelligence Agent for PharmAgent AI.
 
@@ -64,7 +65,7 @@ For each low-stock item, explicitly state: REORDER [medication] | [quantity] uni
 """
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=MODEL,
         max_tokens=1000,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": context}],

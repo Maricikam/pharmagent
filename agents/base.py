@@ -5,10 +5,11 @@ agents/base.py — Base class for all PharmAgent AI agents.
 import json
 import anthropic
 from tools.pharmacy_tools import TOOL_DEFINITIONS, TOOL_FUNCTIONS
+from config import MODEL
 
 
 class BaseAgent:
-    def __init__(self, name: str, system_prompt: str, model: str = "claude-haiku-4-5-20251001"):
+    def __init__(self, name: str, system_prompt: str, model: str = MODEL):
         self.name = name
         self.system_prompt = system_prompt
         self.model = model

@@ -28,6 +28,7 @@ Data residency:
 import anthropic
 import json
 from tools.pharmacy_tools import get_patient_by_nhs, get_active_prescriptions, log_audit_event
+from config import MODEL
 
 # ---------------------------------------------------------------------------
 # DETERMINISTIC INTERACTION RULES TABLE
@@ -200,7 +201,7 @@ Please analyse the active medications{f' against the new medication ({new_medica
 """
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=MODEL,
         max_tokens=1000,
         system=SYSTEM_PROMPT,
         messages=[
