@@ -88,7 +88,7 @@ Four OpenClaw skills are included in the `skills/` directory:
 | `pharmagent-interaction-check` | "Check patient [CHI] for [medication]" |
 | `pharmagent-stock-review` | "What's running low on stock?" |
 | `pharmagent-patient-engagement` | "Send refill reminders this week" |
-| `pharmagent-morning-briefing` | "Run the daily pharmacy check" |
+| `pharmagent-daily-briefing` | "Run the daily pharmacy check" |
 
 See [OPENCLAW.md](OPENCLAW.md) for full setup instructions.
 
@@ -206,7 +206,7 @@ pharmagent/
 │   ├── pharmagent-interaction-check/
 │   ├── pharmagent-stock-review/
 │   ├── pharmagent-patient-engagement/
-│   └── pharmagent-morning-briefing/
+│   └── pharmagent-daily-briefing/
 ├── tests/
 ├── scripts/
 │   └── seed.py                       # Demo data seeder

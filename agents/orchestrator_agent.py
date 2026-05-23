@@ -21,7 +21,7 @@ Design pattern:
     logic entirely to specialist agents.
 
 OpenClaw integration:
-    This agent is the primary target of the pharmagent-morning-briefing
+    This agent is the primary target of the pharmagent-daily-briefing
     and pharmagent-interaction-check OpenClaw skills. Natural language
     input from WhatsApp/Telegram is routed here via the FastAPI
     /agents/orchestrate endpoint.

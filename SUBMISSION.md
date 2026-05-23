@@ -55,7 +55,7 @@ Four skills connect PharmAgent to any chat app via OpenClaw:
 
 | Skill | Trigger |
 |---|---|
-| `pharmagent-morning-briefing` | "Run the daily pharmacy check" |
+| `pharmagent-daily-briefing` | "Run the daily pharmacy check" |
 | `pharmagent-interaction-check` | "Check CHI 1203480016 for Ibuprofen" |
 | `pharmagent-stock-review` | "What's running low?" |
 | `pharmagent-patient-engagement` | "Send refill reminders this week" |

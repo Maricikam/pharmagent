@@ -1,18 +1,18 @@
 ---
-name: pharmagent-morning-briefing
-description: Run the full PharmAgent morning workflow — stock review, expiry check, and patient engagement reminders — in a single orchestrated briefing. Ideal as a scheduled daily task.
+name: pharmagent-daily-briefing
+description: Run the full PharmAgent daily workflow — stock review, expiry check, and patient engagement reminders — in a single orchestrated briefing. Ideal as a scheduled daily task.
 homepage: https://github.com/Maricikam/pharmagent
 metadata: {"openclaw": {"emoji": "🌅", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
-# PharmAgent — Morning Briefing (Full Orchestrated Workflow)
+# PharmAgent — Daily Briefing (Full Orchestrated Workflow)
 
-This skill runs the complete daily pharmacy startup workflow via the PharmAgent Orchestrator. Use it as a morning check-in or schedule it as a daily automated task.
+This skill runs the complete daily pharmacy workflow via the PharmAgent Orchestrator. Use it as a daily check-in or schedule it as an automated task.
 
 ## When to use
 
 - "Good morning, run the pharmacy check"
-- "Morning briefing"
+- "Daily briefing"
 - "Run the daily workflow"
 - "What does the pharmacy need today?"
 
@@ -21,7 +21,7 @@ This skill runs the complete daily pharmacy startup workflow via the PharmAgent 
 Add to OpenClaw automation to run automatically every weekday morning:
 
 ```
-Every weekday at 08:00: run pharmagent-morning-briefing
+Every weekday at 08:00: run pharmagent-daily-briefing
 ```
 
 ## How to use
@@ -44,7 +44,7 @@ The Orchestrator Agent coordinates three sub-agents in sequence:
 
 ## Output
 
-A structured morning report including:
+A structured daily report including:
 - Stock health summary with reorder confirmations
 - Near-expiry items requiring action
 - Number of patients contacted with reminder status

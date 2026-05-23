@@ -112,12 +112,12 @@ Four AgentSkills-compatible `SKILL.md` files teach an OpenClaw instance how to c
 
 | Skill | Triggers | Calls |
 |---|---|---|
-| `pharmagent-morning-briefing` | "Good morning, run the check" | `POST /agents/orchestrate` |
+| `pharmagent-daily-briefing` | "Good morning, run the check" | `POST /agents/orchestrate` |
 | `pharmagent-interaction-check` | "Check patient before I dispense" | `POST /agents/interaction-check` |
 | `pharmagent-stock-review` | "What's running low?" | `POST /agents/stock-review` |
 | `pharmagent-patient-engagement` | "Send SMS reminders" | `POST /agents/engagement-campaign` |
 
-The morning briefing skill can also be scheduled as a daily cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
+The daily briefing skill can also be scheduled as a cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
 
 ---
 

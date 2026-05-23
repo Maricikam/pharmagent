@@ -11,7 +11,7 @@ PharmAgent ships four OpenClaw skills that let you control the pharmacy system d
 | `pharmagent-interaction-check` | Check a patient's medications for interaction risks before dispensing |
 | `pharmagent-stock-review` | Review stock levels, flag expiry, trigger supplier reorders |
 | `pharmagent-patient-engagement` | Send personalised SMS refill reminders to patients |
-| `pharmagent-morning-briefing` | Full orchestrated daily workflow — stock review, expiry check, patient reminders |
+| `pharmagent-daily-briefing` | Full orchestrated daily workflow — stock review, expiry check, patient reminders |
 
 ---
 
@@ -100,7 +100,7 @@ To automate the morning workflow, enable the scheduled task in `openclaw.json`:
       {
         "id": "pharmagent-daily-briefing",
         "cron": "0 8 * * 1-5",
-        "skill": "pharmagent-morning-briefing",
+        "skill": "pharmagent-daily-briefing",
         "enabled": true
       }
     ]
@@ -122,6 +122,6 @@ PharmAgent is built on the same architectural principles as OpenClaw:
 | Agent layer | Claude-powered reasoning agents | OpenClaw agent turns |
 | Orchestration | OrchestratorAgent coordinates sub-agents | OpenClaw multi-agent + sub-agents |
 | Communication | Chat interface for pharmacists | OpenClaw channels (WhatsApp, Telegram) |
-| Automation | Scheduled morning briefing | OpenClaw cron tasks |
+| Automation | Scheduled daily briefing | OpenClaw cron tasks |
 
 PharmAgent's FastAPI backend exposes the multi-agent system as HTTP endpoints, and these OpenClaw skills teach your lobster how to call them — turning a pharmacy AI into something you can manage from your phone.

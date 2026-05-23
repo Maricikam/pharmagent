@@ -25,7 +25,7 @@
           "PHARMAGENT_API_KEY": "your-api-key-here"
         }
       },
-      "pharmagent-morning-briefing": {
+      "pharmagent-daily-briefing": {
         "enabled": true,
         "env": {
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
@@ -39,10 +39,10 @@
     "tasks": [
       {
         "id": "pharmagent-daily-briefing",
-        "name": "PharmAgent Daily Morning Briefing",
+        "name": "PharmAgent Daily Briefing",
         "description": "Runs the full pharmacy workflow every weekday at 08:00: stock review, expiry check, and patient SMS reminders.",
         "cron": "0 8 * * 1-5",
-        "skill": "pharmagent-morning-briefing",
+        "skill": "pharmagent-daily-briefing",
         "enabled": false
       }
     ]

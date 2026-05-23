@@ -93,7 +93,7 @@ def main():
     else:
         print(DEMO_ENGAGEMENT)
 
-    section("DEMO 4 — Orchestrator (full morning briefing via single prompt)")
+    section("DEMO 4 — Orchestrator (full daily briefing via single prompt)")
     if LIVE:
         from agents.orchestrator_agent import run_orchestrator
         result = run_orchestrator(
