@@ -12,9 +12,9 @@ PharmAgent AI is a multi-agent system that gives a pharmacist a clinical co-pilo
 
 Three specialist AI agents handle distinct domains:
 
-- **Interaction Safety Agent** — cross-references a patient's active prescriptions against a new medication before dispensing. Crucially, risk ratings are anchored to a deterministic clinical rules table: the AI cannot downgrade a HIGH interaction to MODERATE. This is a deliberate safety design choice — AI reasoning enriches the output, but cannot weaken a known contraindication.
+- **Interaction Safety Agent** — cross-references a patient's active prescriptions against a new medication before dispensing. Risk ratings are anchored to 80 validated drug pairs from DrugBank 6.0 and Micromedex: the AI cannot downgrade a HIGH interaction to MODERATE. When a known pair is detected, the full clinical management guidance — safer alternatives, monitoring steps — is injected directly into the prompt.
 - **Stock Intelligence Agent** — reviews inventory levels, flags near-expiry medications, calculates waste cost, and triggers supplier reorders automatically.
-- **Patient Engagement Agent** — generates personalised SMS/email refill reminders for patients due within a configurable window, using each patient's name and specific medication history rather than a generic template.
+- **Patient Engagement Agent** — generates personalised SMS/email refill reminders for patients due within a configurable window. Patients are scored for adherence risk using population statistics derived from a 5,000-record dataset; high-risk patients (elderly, complex regimens, mental health medications) are prioritised and receive more supportive messaging.
 
 An Orchestrator Agent sits above all three, accepting plain English from the pharmacist and coordinating whichever agents are needed — so "Good morning, run the daily check" triggers a full stock review and patient outreach in a single message.
 
@@ -41,9 +41,19 @@ Tool Layer (deterministic)     Agent Layer (Claude Haiku)
 
 The tool/agent separation is intentional. Every database query, reorder, and message is handled by deterministic Python functions — auditable, testable, and replaceable. Claude only touches the reasoning layer: interpreting intent, weighing clinical risk, and generating human-readable output.
 
+## Real clinical datasets
+
+Two validated datasets are integrated directly into the agent layer:
+
+**Drug-Drug Interaction database** (`data/Interaction Safety Agent.json`) — 80 records sourced from DrugBank 6.0, Micromedex Solutions, and FDA Drug Safety Communications. Loaded at startup into the Interaction Safety Agent. Each record includes severity (Major/Moderate/Minor), mechanism of action, clinical effect, safer alternative, and specific clinical management steps. When a patient's medication list matches a known pair, the full management record — not just a severity label — is injected into the Claude prompt, so recommendations cite evidence-based guidance rather than generic advice.
+
+**Patient Adherence dataset** (`data/patient_adherence_dataset.csv`) — 5,000 records with 14 demographic and clinical features. Non-adherence rates by age band derived from this data: 52% for under-45s rising to 61% for 75+, with an 11 percentage point uplift for patients on mental health medications. These statistics are used by the Patient Engagement Agent to score every patient's adherence risk (HIGH / MEDIUM / LOW) before each campaign run. High-risk patients are sorted to the front of the outreach queue and receive warmer, more supportive messages tailored to their risk profile.
+
+Both datasets are excluded from the repository (`.gitignore`) and loaded at runtime. The system falls back to hardcoded equivalents on Railway where the `data/` folder is absent, so the live demo is unaffected.
+
 ## Key safety decisions
 
-1. **Deterministic interaction rules** — 40+ clinically validated drug pairs with fixed severity levels injected into every interaction check. Claude reasons around them; it cannot override them.
+1. **Deterministic interaction rules** — 80 clinically validated drug pairs (DrugBank 6.0 / Micromedex) with fixed severity levels injected into every interaction check. Claude reasons around them; it cannot override them.
 2. **Human-in-the-loop** — every agent recommendation requires pharmacist sign-off before clinical action is taken. The system advises; it does not dispense.
 3. **Full audit trail** — every agent action is logged to a timestamped `AuditLog` table with agent identity and patient reference. Designed for NHS Scotland regulatory compliance.
 4. **CHI number validation** — Scottish CHI numbers are validated against the Modulus 11 algorithm before any patient query reaches the database.
