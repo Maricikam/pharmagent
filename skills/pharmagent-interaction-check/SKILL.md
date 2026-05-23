@@ -12,9 +12,9 @@ Use this skill before dispensing a new medication to check for interactions with
 ## When to use
 
 - "Check [patient CHI] before I dispense [medication]"
-- "Is it safe to give Ibuprofen to patient 4823719056?"
+- "Is it safe to give Ibuprofen to patient 1203480016?"
 - "Run an interaction check"
-- "Check medications for CHI number 4823719056"
+- "Check medications for CHI number 1203480016"
 
 ## How to use
 

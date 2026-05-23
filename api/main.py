@@ -75,6 +75,16 @@ def _ts() -> str:
     return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _local_ts() -> str:
+    """Return current time in Europe/London (BST/GMT) as a readable string."""
+    try:
+        from zoneinfo import ZoneInfo
+        now = datetime.now(ZoneInfo("Europe/London"))
+    except Exception:
+        now = datetime.utcnow() + timedelta(hours=1)
+    return now.strftime("%d/%m/%Y  %H:%M")
+
+
 def _has_api_key() -> bool:
     return bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
 
@@ -111,7 +121,7 @@ def demo():
         "note": "Realistic simulated outputs. Live AI mode activates when ANTHROPIC_API_KEY is set.",
         "agents": {
             "interaction_safety_agent": {
-                "patient": {"name": "Margaret Campbell", "nhs_number": "4823719056", "dob": "1948-03-14"},
+                "patient": {"name": "Margaret Campbell", "nhs_number": "1203480016", "dob": "1948-03-12"},
                 "active_medications": [
                     {"name": "Warfarin", "dose": "5mg", "frequency": "Once daily"},
                     {"name": "Aspirin", "dose": "75mg", "frequency": "Once daily"},
@@ -370,6 +380,7 @@ def orchestrate(request: Request, req: OrchestrateRequest):
         return {"mode": "demo", "intent": req.intent, "demo_output": demo()}
     try:
         from agents.orchestrator_agent import run_orchestrator
-        return {"mode": "live", "response": run_orchestrator(req.intent)}
+        intent_with_time = f"[Current time: {_local_ts()} BST]\n{req.intent}"
+        return {"mode": "live", "response": run_orchestrator(intent_with_time)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
