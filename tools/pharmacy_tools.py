@@ -32,6 +32,31 @@ def get_patient_by_nhs(nhs_number: str) -> dict:
         db.close()
 
 
+def get_patient_by_name(name: str) -> list[dict]:
+    """Search patients by name (case-insensitive, partial match per word)."""
+    db = _db()
+    try:
+        from sqlalchemy import func
+        terms = name.strip().lower().split()
+        query = db.query(Patient)
+        for term in terms:
+            query = query.filter(
+                func.lower(Patient.first_name).contains(term) |
+                func.lower(Patient.last_name).contains(term)
+            )
+        return [
+            {
+                "id": p.id,
+                "nhs_number": p.nhs_number,
+                "name": f"{p.first_name} {p.last_name}",
+                "date_of_birth": p.date_of_birth,
+            }
+            for p in query.all()
+        ]
+    finally:
+        db.close()
+
+
 def get_active_prescriptions(patient_id: int) -> list[dict]:
     db = _db()
     try:

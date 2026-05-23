@@ -40,13 +40,32 @@ import json
 from agents.interaction_safety_agent import check_interactions
 from agents.stock_intelligence_agent import run_stock_review
 from agents.patient_engagement_agent import run_engagement_campaign
-from tools.pharmacy_tools import log_audit_event
+from tools.pharmacy_tools import log_audit_event, get_patient_by_name
 from config import MODEL
 MAX_TURNS = 5
 
 client = anthropic.Anthropic()
 
 TOOLS = [
+    {
+        "name": "lookup_patient",
+        "description": (
+            "Look up a patient by name when the pharmacist does not provide a CHI number. "
+            "Returns matching patients with their CHI numbers. "
+            "If multiple patients match, return the list so the pharmacist can clarify. "
+            "Always call this before check_drug_interactions when only a name is given."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Patient name or partial name (e.g. 'Margaret Campbell' or 'Robertson')",
+                }
+            },
+            "required": ["name"],
+        },
+    },
     {
         "name": "check_drug_interactions",
         "description": "Check a patient's active prescriptions for drug interaction risks. Use when a pharmacist asks about a specific patient's medications or safety.",
@@ -55,8 +74,12 @@ TOOLS = [
             "properties": {
                 "nhs_number": {
                     "type": "string",
-                    "description": "The patient's 10-digit NHS number",
-                }
+                    "description": "The patient's 10-digit CHI number",
+                },
+                "new_medication": {
+                    "type": "string",
+                    "description": "Name of the new medication to check against the patient's current prescriptions (optional — omit to check all active medications for interactions)",
+                },
             },
             "required": ["nhs_number"],
         },
@@ -121,10 +144,13 @@ Your job is to:
 2. Decide which specialist agents to call (you can call multiple)
 3. Synthesise all results into a structured clinical report for the pharmacist
 
-Available agents:
-- check_drug_interactions: for patient-specific medication safety checks
+Available tools:
+- lookup_patient: resolve a patient name to a CHI number — always use this first if no CHI is provided
+- check_drug_interactions: for patient-specific medication safety checks (requires CHI number)
 - run_stock_review: for inventory management
 - run_patient_engagement: for patient refill reminders
+
+If the pharmacist refers to a patient by name only, call lookup_patient first to get the CHI number, then proceed with check_drug_interactions. If lookup returns multiple matches, list them and ask the pharmacist to clarify.
 
 OUTPUT FORMAT — strictly follow this style:
 - Write in a professional NHS clinical tone, as you would in a handover report or dispensing log
@@ -166,8 +192,26 @@ def run_orchestrator(pharmacist_request: str) -> str:
             tool_input = block.input
             print(f"  🔧 Calling: {tool_name}({json.dumps(tool_input) if tool_input else ''})")
 
-            if tool_name == "check_drug_interactions":
-                result = check_interactions(tool_input["nhs_number"])
+            if tool_name == "lookup_patient":
+                matches = get_patient_by_name(tool_input["name"])
+                if not matches:
+                    result = f"No patients found matching '{tool_input['name']}'."
+                elif len(matches) == 1:
+                    p = matches[0]
+                    result = f"Found: {p['name']} | CHI: {p['nhs_number']} | DOB: {p['date_of_birth']}"
+                else:
+                    lines = [f"Multiple patients found for '{tool_input['name']}':"]
+                    for p in matches:
+                        lines.append(f"  - {p['name']} | CHI: {p['nhs_number']} | DOB: {p['date_of_birth']}")
+                    lines.append("Please ask the pharmacist to confirm which patient.")
+                    result = "\n".join(lines)
+                agent_results["patient_lookup"] = result
+
+            elif tool_name == "check_drug_interactions":
+                result = check_interactions(
+                    tool_input["nhs_number"],
+                    new_medication=tool_input.get("new_medication"),
+                )
                 agent_results["interaction_check"] = result
 
             elif tool_name == "run_stock_review":
