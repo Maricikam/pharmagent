@@ -29,10 +29,6 @@ Patient Engagement Agent
 Identifies patients due for refills and generates personalised,
 compassionate outreach messages. Simulates sending via SMS or email.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import anthropic
 import json
 from datetime import datetime
@@ -155,6 +151,8 @@ def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms", campaign_
 
 
 if __name__ == "__main__":
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     print("=== Patient Engagement Agent ===\n")
     print("Finding patients due for refills in the next 7 days...\n")
     result = run_engagement_campaign(days_ahead=7, channel="sms")

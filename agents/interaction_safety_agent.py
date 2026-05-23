@@ -25,11 +25,6 @@ Data residency:
     infrastructure (NFR-01 compliant).
 """
 
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import anthropic
 import json
 from tools.pharmacy_tools import get_patient_by_nhs, get_active_prescriptions, log_audit_event
@@ -226,6 +221,8 @@ Please analyse the active medications{f' against the new medication ({new_medica
 
 
 if __name__ == "__main__":
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     print("=== Interaction Safety Agent ===\n")
     tests = [
         ("1203480016", "Ibuprofen"),    # HIGH — warfarin + aspirin + ibuprofen

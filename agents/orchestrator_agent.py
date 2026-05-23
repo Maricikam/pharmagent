@@ -35,10 +35,6 @@ returns a unified response.
 
 This is the headline demo: one prompt → full multi-agent workflow.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import anthropic
 import json
 from agents.interaction_safety_agent import check_interactions
@@ -192,6 +188,8 @@ def run_orchestrator(pharmacist_request: str) -> str:
 
 
 if __name__ == "__main__":
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     print("=" * 60)
     print("  PharmAgent AI — Orchestrator Demo")
     print("=" * 60)

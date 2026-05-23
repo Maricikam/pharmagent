@@ -2,10 +2,6 @@
 PharmAgent AI — Test Suite
 Run: pytest tests/ -v
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import pytest
 from unittest.mock import patch, MagicMock
 from db.database import init_db, SessionLocal

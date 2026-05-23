@@ -25,10 +25,6 @@ Design note:
     regulatory audit compliance.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import anthropic
 import json
 from tools.pharmacy_tools import (get_low_stock_items, get_expiring_stock,
@@ -102,6 +98,8 @@ For each low-stock item, explicitly state: REORDER [medication] | [quantity] uni
 
 
 if __name__ == "__main__":
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     print("=== Stock Intelligence Agent ===\n")
     result = run_stock_review()
     print(result["analysis"])

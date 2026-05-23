@@ -2,10 +2,6 @@
 Tool Layer — deterministic functions for PharmAgent AI.
 These are the 'classic software' components: predictable, auditable, testable.
 """
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from db.database import SessionLocal
 from db.models import Patient, Medication, StockItem, Prescription, AuditLog
 from datetime import datetime, timedelta

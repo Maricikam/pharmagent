@@ -29,11 +29,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
-app.mount("/static", StaticFiles(directory="api/static"), name="static")
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],   # open for demo; restrict to your domain in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
