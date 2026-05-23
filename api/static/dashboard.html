@@ -151,6 +151,24 @@
 .audit-agent { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #e6f7f1; color: #085041; white-space: nowrap; }
 .audit-action { font-weight: 600; color: #1a1a2e; white-space: nowrap; }
 .audit-details { color: #6b7280; font-size: 12px; line-height: 1.5; }
+  .briefing-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem; color: #fff; }
+  .briefing-header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem; }
+  .briefing-icon { width: 42px; height: 42px; background: #1D9E75; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .briefing-title { font-size: 17px; font-weight: 700; color: #fff; }
+  .briefing-sub { font-size: 13px; color: #9ca3af; margin-top: 2px; }
+  .briefing-meta { font-size: 12px; color: #6b7280; margin-left: auto; white-space: nowrap; }
+  .btn-briefing { padding: 11px 24px; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; margin-top: 1rem; font-family: inherit; transition: all 0.15s; background: #1D9E75; color: #fff; }
+  .btn-briefing:hover { background: #189065; }
+  .btn-briefing:disabled { background: #374151; cursor: not-allowed; }
+  .briefing-result { margin-top: 1.25rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 1.25rem; display: none; color: #e5e7eb; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+  .briefing-result.show { display: block; }
+  .briefing-result .c-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; font-weight: 700; margin: 14px 0 5px; opacity: 1; }
+  .briefing-result p { margin: 4px 0; }
+  .briefing-result ul { padding-left: 16px; margin: 4px 0 8px; }
+  .briefing-result ul li { margin: 4px 0; }
+  .briefing-result ol { padding-left: 16px; margin: 4px 0 8px; }
+  .briefing-result ol li { margin: 4px 0; }
+  .briefing-result hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0; }
 </style>
 </head>
 <body>
@@ -202,6 +220,21 @@
 <div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg">Order placed</span></div>
 
 <div class="main">
+  <div class="briefing-card">
+    <div class="briefing-header">
+      <div class="briefing-icon"><i class="ti ti-sun"></i></div>
+      <div>
+        <div class="briefing-title">Morning Briefing</div>
+        <div class="briefing-sub">Full orchestrated workflow — stock · expiry · patient reminders</div>
+      </div>
+      <span class="briefing-meta" id="briefing-last-run"></span>
+    </div>
+    <button class="btn-briefing" id="briefing-btn" onclick="runMorningBriefing()">
+      <i class="ti ti-player-play"></i> Run full briefing
+    </button>
+    <div class="briefing-result" id="briefing-result"></div>
+  </div>
+
   <nav class="nav">
     <button class="nav-btn active" onclick="showTab('interaction', this)"><i class="ti ti-shield-check"></i> Interaction check</button>
     <button class="nav-btn" onclick="showTab('stock', this)"><i class="ti ti-box"></i> Stock review</button>
@@ -742,6 +775,32 @@ async function runEngagement() {
 function engPreview(idx) {
   const el = document.getElementById('eng-msg-' + idx);
   el.classList.toggle('show');
+}
+
+async function runMorningBriefing() {
+  const btn = document.getElementById('briefing-btn');
+  const result = document.getElementById('briefing-result');
+  const lastRun = document.getElementById('briefing-last-run');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Running agents…';
+  result.classList.add('show');
+  result.innerHTML = '<span style="color:#6b7280">Orchestrating stock review, expiry check, and patient engagement…</span>';
+  try {
+    const res = await fetch(BASE + '/agents/orchestrate', {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ intent: 'Good morning. Run the full daily pharmacy check: review stock levels, check expiring medications, and send refill reminders to patients due in the next 7 days.' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    const text = data.response || data.demo_output || 'No response received.';
+    result.innerHTML = renderClinicalText(typeof text === 'string' ? text : JSON.stringify(text, null, 2));
+    lastRun.textContent = 'Last run: ' + new Date().toLocaleTimeString('en-GB');
+  } catch(e) {
+    result.innerHTML = `<span style="color:#f87171"><i class="ti ti-alert-circle"></i> ${e.message || 'Error running briefing.'}</span>`;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-player-play"></i> Run full briefing';
 }
 
 async function loadAuditLog() {
