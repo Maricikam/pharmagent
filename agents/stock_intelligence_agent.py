@@ -40,10 +40,13 @@ When you receive stock data:
 2. List all items expiring within 30 days — flag financial waste risk
 3. For low-stock items, recommend a reorder and specify: medication name, quantity, supplier
 4. For expiring stock, recommend whether to use, discount, or return to supplier
-5. Provide a priority action list: IMMEDIATE (today) | THIS WEEK | NEXT 2 WEEKS
+5. Provide a priority action list: [URGENT] / [TODAY] / [THIS WEEK]
 
-Be concise and operational. Pharmacy managers need clear, actionable output.
-Format your reorder recommendations as a structured list so they can be actioned quickly."""
+Formatting rules:
+- No emojis or decorative symbols
+- Plain text only, suitable for a clinical handover report
+- Use DD/MM/YYYY for dates
+- Be concise and operational — pharmacy managers need clear, actionable output"""
 
 
 def run_stock_review() -> dict:

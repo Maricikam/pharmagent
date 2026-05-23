@@ -106,7 +106,7 @@ def seed():
     med = {m.generic_name: m for m in medications}
 
     prescriptions = [
-        # ── Margaret Campbell (4823719056) ──────────────────────────────────────
+        # ── Margaret Campbell (1203480016) ──────────────────────────────────────
         # ON: Warfarin + Aspirin
         # TEST: Ibuprofen → HIGH (GI bleed, triple hit)
         # TEST: Naproxen  → HIGH (same risk)
@@ -121,7 +121,7 @@ def seed():
                      issue_date=(today - timedelta(days=30)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=2)).strftime("%Y-%m-%d"), active=True),
 
-        # ── James Morrison (3917284650) ─────────────────────────────────────────
+        # ── James Morrison (2407550013) ─────────────────────────────────────────
         # ON: Atorvastatin + Clarithromycin
         # TEST: Amiodarone → HIGH (statin toxicity + QT prolongation)
         # TEST: Warfarin   → MODERATE (clarithromycin raises Warfarin)
@@ -135,7 +135,7 @@ def seed():
                      issue_date=(today - timedelta(days=3)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=4)).strftime("%Y-%m-%d"), active=True),
 
-        # ── Patricia Henderson (6012847391) ─────────────────────────────────────
+        # ── Patricia Henderson (0811620018) ─────────────────────────────────────
         # ON: Lisinopril + Spironolactone
         # TEST: Ibuprofen  → HIGH (reduces ACE inhibitor effect + renal risk)
         # TEST: Ramipril   → HIGH (double ACE inhibitor + hyperkalemia)
@@ -149,7 +149,7 @@ def seed():
                      issue_date=(today - timedelta(days=14)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=7)).strftime("%Y-%m-%d"), active=True),
 
-        # ── Robert MacLeod (7384920156) ─────────────────────────────────────────
+        # ── Robert MacLeod (3004710013) ─────────────────────────────────────────
         # ON: Metformin (diabetes, otherwise healthy)
         # TEST: Ibuprofen     → MODERATE (renal clearance concern)
         # TEST: Clarithromycin → LOW (no direct interaction)
@@ -159,7 +159,7 @@ def seed():
                      issue_date=(today - timedelta(days=45)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=15)).strftime("%Y-%m-%d"), active=True),
 
-        # ── Susan Graham (2847563019) ────────────────────────────────────────────
+        # ── Susan Graham (1509580018) ────────────────────────────────────────────
         # ON: Sertraline (depression)
         # TEST: Tramadol      → HIGH (serotonin syndrome)
         # TEST: Amitriptyline → HIGH (serotonin syndrome + CNS depression)
@@ -170,7 +170,7 @@ def seed():
                      issue_date=(today - timedelta(days=55)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=3)).strftime("%Y-%m-%d"), active=True),
 
-        # ── William Stevenson (5019283746) ──────────────────────────────────────
+        # ── William Stevenson (0312430019) ──────────────────────────────────────
         # ON: Digoxin + Furosemide + Bisoprolol + Amiodarone (heart failure, elderly 81)
         # TEST: Clarithromycin → HIGH (raises Digoxin to toxic levels)
         # TEST: Spironolactone → MODERATE (potassium imbalance with Furosemide)
@@ -193,7 +193,7 @@ def seed():
                      issue_date=(today - timedelta(days=60)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=8)).strftime("%Y-%m-%d"), active=True),
 
-        # ── Dorothy Reid (8374650192) ────────────────────────────────────────────
+        # ── Dorothy Reid (1902670019) ────────────────────────────────────────────
         # ON: Prednisolone + Alendronic Acid + Calcium + Vit D (long-term steroids)
         # TEST: Ibuprofen  → HIGH (doubled GI bleed risk with Prednisolone)
         # TEST: Aspirin    → HIGH (GI bleed risk with Prednisolone)
@@ -212,7 +212,7 @@ def seed():
                      issue_date=(today - timedelta(days=200)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=8)).strftime("%Y-%m-%d"), active=True),
 
-        # ── George Fraser (1092837465) ───────────────────────────────────────────
+        # ── George Fraser (2706800011) ───────────────────────────────────────────
         # ON: Omeprazole + Clopidogrel (post-stent)
         # TEST: Aspirin    → MODERATE (triple antithrombotic risk)
         # TEST: Ibuprofen  → HIGH (GI bleed + antiplatelet interaction)
@@ -227,7 +227,7 @@ def seed():
                      issue_date=(today - timedelta(days=50)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=10)).strftime("%Y-%m-%d"), active=True),
 
-        # ── Helen Murray (9283746501) ────────────────────────────────────────────
+        # ── Helen Murray (1108530028) ────────────────────────────────────────────
         # ON: Salbutamol + Beclometasone + Montelukast (asthma)
         # TEST: Propranolol  → HIGH (beta-blocker blocks Salbutamol, triggers bronchospasm)
         # TEST: Ibuprofen    → HIGH (NSAID-exacerbated asthma)
@@ -246,7 +246,7 @@ def seed():
                      issue_date=(today - timedelta(days=100)).strftime("%Y-%m-%d"),
                      next_due_date=(today + timedelta(days=20)).strftime("%Y-%m-%d"), active=True),
 
-        # ── Thomas Robertson (4756019283) ───────────────────────────────────────
+        # ── Thomas Robertson (2201380015) ───────────────────────────────────────
         # ON: Warfarin + Ibuprofen (CRITICAL — already prescribed together!)
         # TEST: Aspirin      → CRITICAL (triple bleeding risk)
         # TEST: Clopidogrel  → CRITICAL (triple antithrombotic)
