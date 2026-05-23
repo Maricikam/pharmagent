@@ -198,7 +198,7 @@
 <body>
 
 <div class="topbar">
-  <div class="logo"><i class="ti ti-pill"></i></div>
+  <div class="logo" onclick="location.reload()" title="Reset" style="cursor:pointer"><i class="ti ti-pill"></i></div>
   <span class="topbar-title">PharmAgent AI</span>
   <span class="topbar-sub">— Pharmacy Management</span>
   <div class="key-wrap">
@@ -248,7 +248,7 @@
     <div class="briefing-header">
       <div class="briefing-icon"><i class="ti ti-sun"></i></div>
       <div>
-        <div class="briefing-title">Morning Briefing</div>
+        <div class="briefing-title">Daily Briefing</div>
         <div class="briefing-sub">Full orchestrated workflow — stock · expiry · patient reminders</div>
       </div>
       <span class="briefing-meta" id="briefing-last-run"></span>
@@ -845,7 +845,7 @@ async function runMorningBriefing() {
     const res = await fetch(BASE + '/agents/orchestrate', {
       method: 'POST',
       headers: authHeaders(true),
-      body: JSON.stringify({ intent: 'Good morning. Run the full daily pharmacy check: review stock levels, check expiring medications, and send refill reminders to patients due in the next 7 days.' }),
+      body: JSON.stringify({ intent: 'Run the full daily pharmacy check: review stock levels, check expiring medications, and send refill reminders to patients due in the next 7 days.' }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
