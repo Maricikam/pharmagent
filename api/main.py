@@ -257,13 +257,14 @@ def reorder_stock(req: ReorderRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/agents/interaction-check", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def interaction_check_get(nhs_number: str, new_medication_name: str):
+@limiter.limit("30/minute")
+def interaction_check_get(request: Request, nhs_number: str, new_medication_name: str):
     """GET version for OpenClaw/web-fetch compatibility."""
     try:
         req = InteractionCheckRequest(nhs_number=nhs_number, new_medication_name=new_medication_name)
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
-    return interaction_check(req)
+    return interaction_check(request, req)
 
 
 @app.post("/agents/interaction-check", tags=["Agents"], dependencies=[Depends(require_api_key)])
@@ -310,9 +311,10 @@ def interaction_check(request: Request, req: InteractionCheckRequest):
 
 
 @app.get("/agents/stock-review", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def stock_review_get():
+@limiter.limit("30/minute")
+def stock_review_get(request: Request):
     """GET version for OpenClaw/web-fetch compatibility."""
-    return stock_review()
+    return stock_review(request)
 
 
 @app.post("/agents/stock-review", tags=["Agents"], dependencies=[Depends(require_api_key)])
@@ -329,10 +331,11 @@ def stock_review(request: Request):
 
 
 @app.get("/agents/engagement-campaign", tags=["Agents"], dependencies=[Depends(require_api_key)])
-def engagement_campaign_get(campaign_type: str = "refill_reminder"):
+@limiter.limit("30/minute")
+def engagement_campaign_get(request: Request, campaign_type: str = "refill_reminder"):
     """GET version for OpenClaw/web-fetch compatibility."""
     req = EngagementRequest(campaign_type=campaign_type)
-    return engagement_campaign(req)
+    return engagement_campaign(request, req)
 
 
 @app.post("/agents/engagement-campaign", tags=["Agents"], dependencies=[Depends(require_api_key)])
