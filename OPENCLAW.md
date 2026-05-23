@@ -11,7 +11,7 @@ PharmAgent ships four OpenClaw skills that let you control the pharmacy system d
 | `pharmagent-interaction-check` | Check a patient's medications for interaction risks before dispensing |
 | `pharmagent-stock-review` | Review stock levels, flag expiry, trigger supplier reorders |
 | `pharmagent-patient-engagement` | Send personalised SMS refill reminders to patients |
-| `pharmagent-morning-briefing` | Full orchestrated daily workflow (all three agents in sequence) |
+| `pharmagent-morning-briefing` | Full orchestrated daily workflow — stock review, expiry check, patient reminders |
 
 ---
 
@@ -75,8 +75,8 @@ Follow the prompts. Once connected, open Telegram and message your bot.
 
 Once set up, you can talk to PharmAgent naturally:
 
-> **"Good morning, run the pharmacy check"**
-> → Triggers the morning briefing: stock review + expiry check + patient reminders
+> **"Run the daily pharmacy check"**
+> → Triggers the daily briefing: stock review + expiry check + patient reminders
 
 > **"Check Thomas Robertson before I dispense — CHI 2201380015"**
 > → Runs the interaction safety check against his active medications
@@ -108,7 +108,7 @@ To automate the morning workflow, enable the scheduled task in `openclaw.json`:
 }
 ```
 
-This runs every weekday at 08:00 and sends the briefing to your connected channel.
+This runs every weekday at 08:00 and sends the daily briefing to your connected channel.
 
 ---
 

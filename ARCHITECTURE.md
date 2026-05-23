@@ -134,6 +134,7 @@ FastAPI application exposing all agent functionality as HTTP endpoints. Includes
 - `POST /agents/interaction-check` — interaction safety check
 - `POST /agents/stock-review` — stock intelligence review
 - `POST /agents/engagement-campaign` — patient engagement campaign
+- `GET /audit/logs` — recent audit trail entries (NFR-04 compliance)
 
 **Live:** https://web-production-1f27a.up.railway.app
 
@@ -153,7 +154,7 @@ FastAPI application exposing all agent functionality as HTTP endpoints. Includes
 ## Security and Compliance
 
 - **Human-in-the-loop:** All agent recommendations require pharmacist approval before clinical action
-- **Audit trail:** Every agent action logged with timestamp, agent identity, and action detail
+- **Audit trail:** Every agent action logged with timestamp, agent identity, and action detail — visible in the dashboard Audit Log tab (`GET /audit/logs`)
 - **Data residency:** Designed for DataVita Scottish data centres — patient data stays within Scotland (NHS Scotland GDPR / NFR-01)
 - **Encryption:** AES-256 at rest, TLS 1.3 in transit (production configuration)
 - **No secrets in code:** API keys via environment variables only; `.env` excluded from git

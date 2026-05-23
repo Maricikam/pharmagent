@@ -4,6 +4,17 @@
 
 PharmAgent AI is a multi-agent system that helps pharmacists check drug interactions, manage stock, and engage patients — all from a web dashboard or directly over WhatsApp via OpenClaw.
 
+### Dashboard features
+
+| Feature | Description |
+|---|---|
+| **Daily Briefing** | One-click orchestrated workflow — runs all three agents and returns a unified clinical report. Downloadable as PDF. |
+| **Drug Interaction Checker** | Check any patient's active medications against a new prescription. Quick-fill demo chips included. |
+| **Stock Review** | AI-powered stock health summary with reorder buttons. |
+| **Patient Lookup** | Retrieve a patient's full medication profile by CHI number. |
+| **Patient Engagement** | Generate and preview personalised SMS/email refill reminders. |
+| **Audit Log** | Live view of all agent actions logged for regulatory compliance (NFR-04). |
+
 ---
 
 ## Live Demo
@@ -77,7 +88,7 @@ Four OpenClaw skills are included in the `skills/` directory:
 | `pharmagent-interaction-check` | "Check patient [CHI] for [medication]" |
 | `pharmagent-stock-review` | "What's running low on stock?" |
 | `pharmagent-patient-engagement` | "Send refill reminders this week" |
-| `pharmagent-morning-briefing` | "Good morning, run the pharmacy check" |
+| `pharmagent-morning-briefing` | "Run the daily pharmacy check" |
 
 See [OPENCLAW.md](OPENCLAW.md) for full setup instructions.
 
@@ -124,9 +135,16 @@ uvicorn api.main:app --reload
 
 | CHI | Patient | Notable medications |
 |---|---|---|
-| `1203480016` | Margaret Campbell | Warfarin, Aspirin |
-| `1509580018` | Susan Graham | Sertraline |
-| `0312430019` | William Stevenson | Digoxin, Furosemide, Bisoprolol, Amiodarone |
+| `1203480016` | Margaret Campbell | Warfarin, Aspirin → try Ibuprofen |
+| `2407550013` | James Morrison | Atorvastatin, Clarithromycin → try Amiodarone |
+| `0811620018` | Patricia Henderson | Lisinopril, Spironolactone → try Ibuprofen |
+| `3004710013` | Robert MacLeod | Metformin → try Ibuprofen |
+| `1509580018` | Susan Graham | Sertraline → try Tramadol |
+| `0312430019` | William Stevenson | Digoxin, Furosemide, Bisoprolol, Amiodarone → try Clarithromycin |
+| `1902670019` | Dorothy Reid | Prednisolone, Alendronic Acid → try Ibuprofen |
+| `2706800011` | George Fraser | Omeprazole, Clopidogrel → try Warfarin |
+| `1108530028` | Helen Murray | Salbutamol, Beclometasone → try Propranolol |
+| `2201380015` | Thomas Robertson | Warfarin + Ibuprofen (already prescribed together — critical) |
 
 ---
 
@@ -147,6 +165,7 @@ uvicorn api.main:app --reload
 | `POST` | `/agents/engagement-campaign` | Run Patient Engagement Agent |
 | `GET` | `/agents/engagement-campaign` | Same — GET version for OpenClaw |
 | `POST` | `/agents/orchestrate` | Plain-English orchestration |
+| `GET` | `/audit/logs` | Recent audit trail entries (NFR-04) |
 
 All data endpoints require an `X-API-Key` header if `API_KEY` is set in the environment.
 

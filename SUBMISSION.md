@@ -55,14 +55,25 @@ Four skills connect PharmAgent to any chat app via OpenClaw:
 
 | Skill | Trigger |
 |---|---|
-| `pharmagent-morning-briefing` | "Good morning, run the pharmacy check" |
+| `pharmagent-morning-briefing` | "Run the daily pharmacy check" |
 | `pharmagent-interaction-check` | "Check CHI 1203480016 for Ibuprofen" |
 | `pharmagent-stock-review` | "What's running low?" |
 | `pharmagent-patient-engagement` | "Send refill reminders this week" |
 
-The morning briefing skill can be scheduled as a daily cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
+The daily briefing skill can be scheduled as a cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
 
 > **Note for judges running locally:** The SKILL.md files point to the Railway deployment URL. If self-hosting, update the base URL in each skill file or set the `PHARMAGENT_API_URL` environment variable.
+
+## Dashboard
+
+The web dashboard demonstrates the full system in one place:
+
+- **Daily Briefing card** — single button triggers all three agents via the Orchestrator and returns a unified NHS-style clinical report. Downloadable as PDF.
+- **Drug Interaction Checker** — patient CHI + new medication → structured risk report with severity, mechanism, and dispensing recommendation. Quick-fill demo chips for instant testing.
+- **Stock Review** — AI analysis with low-stock and expiry alerts, inline reorder buttons.
+- **Patient Lookup** — full medication profile by CHI number.
+- **Patient Engagement** — personalised SMS/email reminder campaigns by type (refill, seasonal, flu vaccination, etc.).
+- **Audit Log** — live table of all agent actions, satisfying NFR-04 visibility. Every interaction check, stock review, and patient message is logged with timestamp, agent identity, and detail.
 
 ## Live demo
 
@@ -72,13 +83,20 @@ The morning briefing skill can be scheduled as a daily cron task in OpenClaw, de
 | **API docs** | https://web-production-1f27a.up.railway.app/docs |
 | **Health** | https://web-production-1f27a.up.railway.app/health |
 
-Demo CHI numbers (seeded test data):
+All 10 demo patients are seeded. Quick-fill buttons in the dashboard auto-populate the forms — no CHI number memorisation needed. Full list:
 
 | CHI | Patient | Try checking against |
 |---|---|---|
 | `1203480016` | Margaret Campbell | Ibuprofen, Amiodarone |
+| `2407550013` | James Morrison | Amiodarone, Warfarin |
+| `0811620018` | Patricia Henderson | Ibuprofen, Ramipril |
+| `3004710013` | Robert MacLeod | Ibuprofen, Paracetamol |
 | `1509580018` | Susan Graham | Tramadol, Amitriptyline |
 | `0312430019` | William Stevenson | Clarithromycin, Ibuprofen |
+| `1902670019` | Dorothy Reid | Ibuprofen, Aspirin |
+| `2706800011` | George Fraser | Warfarin, Ibuprofen |
+| `1108530028` | Helen Murray | Propranolol, Ibuprofen |
+| `2201380015` | Thomas Robertson | Aspirin, Amiodarone (already on Warfarin + Ibuprofen) |
 
 ## Repository
 
