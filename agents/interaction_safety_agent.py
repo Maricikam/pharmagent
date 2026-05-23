@@ -228,11 +228,11 @@ Please analyse the active medications{f' against the new medication ({new_medica
 if __name__ == "__main__":
     print("=== Interaction Safety Agent ===\n")
     tests = [
-        ("4823719056", "Ibuprofen"),    # HIGH — warfarin + aspirin + ibuprofen
-        ("7384920156", "Ibuprofen"),    # MODERATE — metformin + ibuprofen
-        ("2847563019", "Tramadol"),     # HIGH — sertraline + tramadol
-        ("5019283746", "Clarithromycin"), # HIGH — digoxin + clarithromycin
-        ("9283746501", "Propranolol"),  # HIGH — salbutamol + propranolol
+        ("1203480016", "Ibuprofen"),    # HIGH — warfarin + aspirin + ibuprofen
+        ("3004710013", "Ibuprofen"),    # MODERATE — metformin + ibuprofen
+        ("1509580018", "Tramadol"),     # HIGH — sertraline + tramadol
+        ("0312430019", "Clarithromycin"), # HIGH — digoxin + clarithromycin
+        ("1108530028", "Propranolol"),  # HIGH — salbutamol + propranolol
     ]
     for nhs, med in tests:
         print(f"Checking CHI: {nhs} | New med: {med}")

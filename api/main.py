@@ -13,7 +13,7 @@ from fastapi import FastAPI, HTTPException, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -191,9 +191,36 @@ def expiring_stock(days: int = 30):
 
 
 
+def _validate_chi(chi: str) -> str:
+    """Validate a Scottish CHI number: 10 digits, DDMMYY date prefix, Modulus 11 check digit."""
+    chi = chi.strip()
+    if not chi.isdigit() or len(chi) != 10:
+        raise ValueError("CHI number must be exactly 10 digits.")
+    dd, mm, yy = int(chi[0:2]), int(chi[2:4]), int(chi[4:6])
+    if not (1 <= dd <= 31 and 1 <= mm <= 12):
+        raise ValueError("CHI number must begin with a valid date (DDMMYY).")
+    weights = [10, 9, 8, 7, 6, 5, 4, 3, 2]
+    total = sum(int(chi[i]) * weights[i] for i in range(9))
+    remainder = total % 11
+    check = 0 if remainder == 0 else 11 - remainder
+    if check == 10:
+        raise ValueError("Invalid CHI number (check digit cannot be 10).")
+    if int(chi[9]) != check:
+        raise ValueError("Invalid CHI number (check digit mismatch).")
+    return chi
+
+
 class InteractionCheckRequest(BaseModel):
     nhs_number: str
     new_medication_name: str
+
+    @field_validator("nhs_number")
+    @classmethod
+    def validate_chi(cls, v: str) -> str:
+        try:
+            return _validate_chi(v)
+        except ValueError as e:
+            raise ValueError(str(e)) from e
 
 
 class EngagementRequest(BaseModel):
@@ -224,7 +251,10 @@ def reorder_stock(req: ReorderRequest):
 @app.get("/agents/interaction-check", tags=["Agents"], dependencies=[Depends(require_api_key)])
 def interaction_check_get(nhs_number: str, new_medication_name: str):
     """GET version for OpenClaw/web-fetch compatibility."""
-    req = InteractionCheckRequest(nhs_number=nhs_number, new_medication_name=new_medication_name)
+    try:
+        req = InteractionCheckRequest(nhs_number=nhs_number, new_medication_name=new_medication_name)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
     return interaction_check(req)
 
 

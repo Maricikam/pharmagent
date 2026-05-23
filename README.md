@@ -18,7 +18,7 @@ PharmAgent AI is a multi-agent system that helps pharmacists check drug interact
 
 The system is connected to WhatsApp via OpenClaw. Example conversations:
 
-> *"Check patient 4823719056 for Ibuprofen"*
+> *"Check patient 1203480016 for Ibuprofen"*
 > → **CONTRAINDICATED** — Warfarin + Ibuprofen: major bleeding risk. DO NOT prescribe. Alternative: paracetamol.
 
 > *"What's running low on stock?"*
@@ -124,9 +124,9 @@ uvicorn api.main:app --reload
 
 | CHI | Patient | Notable medications |
 |---|---|---|
-| `4823719056` | Margaret Campbell | Warfarin, Aspirin, Atorvastatin |
-| `7384920156` | Thomas Robertson | Metformin, Lisinopril |
-| `2847563019` | Elizabeth Fraser | Sertraline, Omeprazole |
+| `1203480016` | Margaret Campbell | Warfarin, Aspirin |
+| `1509580018` | Susan Graham | Sertraline |
+| `0312430019` | William Stevenson | Digoxin, Furosemide, Bisoprolol, Amiodarone |
 
 ---
 

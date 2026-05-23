@@ -81,17 +81,17 @@ def seed():
     # --- Patients ---
     patients_data = [
         # Original patient
-        ("4823719056", "Margaret",  "Campbell",   "1948-03-12", "07700900001", "m.campbell@email.co.uk"),
+        ("1203480016", "Margaret",  "Campbell",   "1948-03-12", "07700900001", "m.campbell@email.co.uk"),
         # New patients
-        ("3917284650", "James",     "Morrison",   "1955-07-24", "07700900002", "j.morrison@email.co.uk"),
-        ("6012847391", "Patricia",  "Henderson",  "1962-11-08", "07700900003", "p.henderson@email.co.uk"),
-        ("7384920156", "Robert",    "MacLeod",    "1971-04-30", "07700900004", "r.macleod@email.co.uk"),
-        ("2847563019", "Susan",     "Graham",     "1958-09-15", "07700900005", "s.graham@email.co.uk"),
-        ("5019283746", "William",   "Stevenson",  "1943-12-03", "07700900006", "w.stevenson@email.co.uk"),
-        ("8374650192", "Dorothy",   "Reid",       "1967-02-19", "07700900007", "d.reid@email.co.uk"),
-        ("1092837465", "George",    "Fraser",     "1980-06-27", "07700900008", "g.fraser@email.co.uk"),
-        ("9283746501", "Helen",     "Murray",     "1953-08-11", "07700900009", "h.murray@email.co.uk"),
-        ("4756019283", "Thomas",    "Robertson",  "1938-01-22", "07700900010", "t.robertson@email.co.uk"),
+        ("2407550013", "James",     "Morrison",   "1955-07-24", "07700900002", "j.morrison@email.co.uk"),
+        ("0811620018", "Patricia",  "Henderson",  "1962-11-08", "07700900003", "p.henderson@email.co.uk"),
+        ("3004710013", "Robert",    "MacLeod",    "1971-04-30", "07700900004", "r.macleod@email.co.uk"),
+        ("1509580018", "Susan",     "Graham",     "1958-09-15", "07700900005", "s.graham@email.co.uk"),
+        ("0312430019", "William",   "Stevenson",  "1943-12-03", "07700900006", "w.stevenson@email.co.uk"),
+        ("1902670019", "Dorothy",   "Reid",       "1967-02-19", "07700900007", "d.reid@email.co.uk"),
+        ("2706800011", "George",    "Fraser",     "1980-06-27", "07700900008", "g.fraser@email.co.uk"),
+        ("1108530028", "Helen",     "Murray",     "1953-08-11", "07700900009", "h.murray@email.co.uk"),
+        ("2201380015", "Thomas",    "Robertson",  "1938-01-22", "07700900010", "t.robertson@email.co.uk"),
     ]
     patients = []
     for nhs, fn, ln, dob, phone, email in patients_data:
@@ -307,16 +307,16 @@ def seed():
     print(f"   {len(stock_items)} stock items")
     print()
     print("Test scenarios:")
-    print("  4823719056  Margaret Campbell   — Warfarin + Aspirin   → try: Ibuprofen, Amiodarone, Paracetamol")
-    print("  3917284650  James Morrison      — Atorvastatin + Clarithromycin → try: Amiodarone, Warfarin")
-    print("  6012847391  Patricia Henderson  — Lisinopril + Spironolactone   → try: Ibuprofen, Ramipril")
-    print("  7384920156  Robert MacLeod      — Metformin only        → try: Ibuprofen, Paracetamol")
-    print("  2847563019  Susan Graham        — Sertraline            → try: Tramadol, Amitriptyline")
-    print("  5019283746  William Stevenson   — Digoxin + Furosemide + Bisoprolol + Amiodarone → try: Clarithromycin, Ibuprofen")
-    print("  8374650192  Dorothy Reid        — Prednisolone + Alendronate   → try: Ibuprofen, Aspirin")
-    print("  1092837465  George Fraser       — Omeprazole + Clopidogrel     → try: Warfarin, Ibuprofen")
-    print("  9283746501  Helen Murray        — Salbutamol + Beclometasone   → try: Propranolol, Ibuprofen")
-    print("  4756019283  Thomas Robertson    — Warfarin + Ibuprofen (!)     → try: Aspirin, Amiodarone")
+    print("  1203480016  Margaret Campbell   — Warfarin + Aspirin   → try: Ibuprofen, Amiodarone, Paracetamol")
+    print("  2407550013  James Morrison      — Atorvastatin + Clarithromycin → try: Amiodarone, Warfarin")
+    print("  0811620018  Patricia Henderson  — Lisinopril + Spironolactone   → try: Ibuprofen, Ramipril")
+    print("  3004710013  Robert MacLeod      — Metformin only        → try: Ibuprofen, Paracetamol")
+    print("  1509580018  Susan Graham        — Sertraline            → try: Tramadol, Amitriptyline")
+    print("  0312430019  William Stevenson   — Digoxin + Furosemide + Bisoprolol + Amiodarone → try: Clarithromycin, Ibuprofen")
+    print("  1902670019  Dorothy Reid        — Prednisolone + Alendronate   → try: Ibuprofen, Aspirin")
+    print("  2706800011  George Fraser       — Omeprazole + Clopidogrel     → try: Warfarin, Ibuprofen")
+    print("  1108530028  Helen Murray        — Salbutamol + Beclometasone   → try: Propranolol, Ibuprofen")
+    print("  2201380015  Thomas Robertson    — Warfarin + Ibuprofen (!)     → try: Aspirin, Amiodarone")
 
 
 if __name__ == "__main__":

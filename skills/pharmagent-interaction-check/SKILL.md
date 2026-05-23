@@ -24,7 +24,7 @@ GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_num
 
 Example:
 ```
-GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=4823719056&new_medication_name=Ibuprofen
+GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=1203480016&new_medication_name=Ibuprofen
 ```
 
 **Parameters:**

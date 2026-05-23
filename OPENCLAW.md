@@ -78,7 +78,7 @@ Once set up, you can talk to PharmAgent naturally:
 > **"Good morning, run the pharmacy check"**
 > → Triggers the morning briefing: stock review + expiry check + patient reminders
 
-> **"Check Thomas Robertson before I dispense — NHS 4756019283"**
+> **"Check Thomas Robertson before I dispense — CHI 2201380015"**
 > → Runs the interaction safety check against his active medications
 
 > **"What's running low on stock?"**
