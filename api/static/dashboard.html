@@ -483,6 +483,7 @@ async function runInteractionCheck() {
       body: JSON.stringify({nhs_number: nhs, new_medication_name: med}),
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
     const r = data.report, p = r.patient, ir = r.interaction_report;
     const initials = p.name.split(' ').map(n => n[0]).join('');
     const isHigh = ir.risk_level === 'HIGH';
@@ -530,7 +531,7 @@ async function runInteractionCheck() {
     html += `<div class="audit-line">Audit ref: ${ir.audit_ref} &nbsp;·&nbsp; Checked: ${new Date(ir.checked_at).toLocaleTimeString()}</div>`;
     box.innerHTML = html;
   } catch(e) {
-    box.innerHTML = '<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> Error connecting to PharmAgent API.</p>';
+    box.innerHTML = `<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> ${e.message || 'Error connecting to PharmAgent API.'}</p>`;
   }
   setLoading('int-btn', false, orig);
 }

@@ -36,6 +36,17 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
+
+@app.on_event("startup")
+def startup():
+    from db.database import init_db
+    from tools.pharmacy_tools import get_patient_by_nhs
+    init_db()
+    if "error" in get_patient_by_nhs("1203480016"):
+        from scripts.seed import seed
+        seed()
+
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
