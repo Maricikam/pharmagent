@@ -143,6 +143,14 @@
 .pat-action-btn.primary:hover { background: #189065; }
 .pat-action-btn.sent { background: #e6f7f1; border-color: #9FE1CB; color: #085041; cursor: default; }
 .pat-action-btn:disabled { cursor: default; }
+.audit-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.audit-table th { background: #f3f4f6; font-weight: 600; text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e9f0; color: #374151; white-space: nowrap; }
+.audit-table td { padding: 7px 12px; border-bottom: 1px solid #f3f4f6; color: #1a1a2e; vertical-align: top; }
+.audit-table tr:last-child td { border-bottom: none; }
+.audit-table tr:hover td { background: #f9fafb; }
+.audit-agent { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #e6f7f1; color: #085041; white-space: nowrap; }
+.audit-action { font-weight: 600; color: #1a1a2e; white-space: nowrap; }
+.audit-details { color: #6b7280; font-size: 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -199,6 +207,7 @@
     <button class="nav-btn" onclick="showTab('stock', this)"><i class="ti ti-box"></i> Stock review</button>
     <button class="nav-btn" onclick="showTab('patient', this)"><i class="ti ti-user"></i> Patient lookup</button>
     <button class="nav-btn" onclick="showTab('engagement', this)"><i class="ti ti-mail"></i> Engagement</button>
+    <button class="nav-btn" onclick="showTab('audit', this); loadAuditLog()"><i class="ti ti-clipboard-list"></i> Audit log</button>
   </nav>
 
   <div id="interaction" class="section active">
@@ -236,6 +245,17 @@
       </button>
     </div>
     <div class="result-box" id="pat-result"></div>
+  </div>
+
+  <div id="audit" class="section">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-clipboard-list"></i> Audit trail</div>
+      <p style="font-size:14px;color:#6b7280;line-height:1.6">All agent actions logged for regulatory compliance (NFR-04). Showing the 50 most recent entries.</p>
+      <button class="btn btn-primary" id="audit-btn" onclick="loadAuditLog()">
+        <i class="ti ti-refresh"></i> Refresh
+      </button>
+    </div>
+    <div class="result-box show" id="audit-result"><p style="color:#6b7280;font-size:14px;">Loading…</p></div>
   </div>
 
   <div id="engagement" class="section">
@@ -722,6 +742,40 @@ async function runEngagement() {
 function engPreview(idx) {
   const el = document.getElementById('eng-msg-' + idx);
   el.classList.toggle('show');
+}
+
+async function loadAuditLog() {
+  const box = document.getElementById('audit-result');
+  const btn = document.getElementById('audit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Loading...';
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Fetching audit entries…</p>';
+  try {
+    const res = await fetch(BASE + '/audit/logs?limit=50', { headers: authHeaders() });
+    const data = await res.json();
+    const logs = data.logs || [];
+    if (logs.length === 0) {
+      box.innerHTML = '<div class="empty-state"><i class="ti ti-clipboard-list"></i>No audit entries yet</div>';
+    } else {
+      let html = '<div style="overflow-x:auto"><table class="audit-table"><thead><tr><th>Time</th><th>Agent</th><th>Action</th><th>Details</th></tr></thead><tbody>';
+      logs.forEach(l => {
+        const d = new Date(l.timestamp);
+        const time = d.toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false });
+        html += `<tr>
+          <td style="white-space:nowrap;font-size:12px;color:#6b7280">${time}</td>
+          <td><span class="audit-agent">${l.agent}</span></td>
+          <td class="audit-action">${l.action}</td>
+          <td class="audit-details">${l.details}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+      box.innerHTML = html;
+    }
+  } catch(e) {
+    box.innerHTML = '<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> Error fetching audit log.</p>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-refresh"></i> Refresh';
 }
 
 function engSend(idx) {

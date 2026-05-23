@@ -372,6 +372,16 @@ def engagement_campaign(request: Request, req: EngagementRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/audit/logs", tags=["Audit"], dependencies=[Depends(require_api_key)])
+def audit_logs(limit: int = 50):
+    """Return the most recent audit log entries."""
+    try:
+        from tools.pharmacy_tools import get_recent_audit_logs
+        return {"logs": get_recent_audit_logs(limit=limit)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/agents/orchestrate", tags=["Agents"], dependencies=[Depends(require_api_key)])
 @limiter.limit("30/minute")
 def orchestrate(request: Request, req: OrchestrateRequest):
