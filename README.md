@@ -46,10 +46,23 @@ PharmAgent AI runs three specialist AI agents, coordinated by an Orchestrator:
 
 | Agent | Responsibility |
 |---|---|
-| **Interaction Safety Agent** | Checks a patient's active prescriptions against a new medication. Anchors risk ratings to a deterministic clinical rules table — the AI cannot downgrade a HIGH risk rating. |
+| **Interaction Safety Agent** | Checks a patient's active prescriptions against a new medication. Anchors risk ratings to 80 validated drug pairs from DrugBank 6.0 / Micromedex — the AI cannot downgrade a HIGH rating. Full clinical management guidance (safer alternatives, monitoring steps) is injected into the prompt when a known pair is detected. |
 | **Stock Intelligence Agent** | Reviews inventory levels, flags near-expiry medications, calculates waste cost, and triggers supplier reorders. |
-| **Patient Engagement Agent** | Identifies patients due for refills and generates personalised SMS/email reminders via Claude. |
+| **Patient Engagement Agent** | Identifies patients due for refills and generates personalised SMS/email reminders. Patients are scored for adherence risk using population statistics from a 5,000-record dataset — high-risk patients are prioritised and receive more supportive messaging. |
 | **Orchestrator Agent** | Accepts plain-English intents and coordinates the sub-agents in sequence. |
+
+---
+
+## Datasets
+
+Two validated clinical datasets are integrated into the agent layer at runtime. Both are excluded from the repository (`.gitignore`) and loaded when present; the system falls back to hardcoded equivalents on Railway.
+
+| Dataset | Records | Used by | Effect |
+|---|---|---|---|
+| `data/Interaction Safety Agent.json` | 80 DDI records | InteractionSafetyAgent | Replaces hardcoded rules table. Each record includes severity, mechanism, safer alternative, and clinical management steps from DrugBank 6.0, Micromedex, and FDA communications. Matching records are injected into the Claude prompt at runtime. |
+| `data/patient_adherence_dataset.csv` | 5,000 records | PatientEngagementAgent | Non-adherence rates by age band and comorbidity count are derived at startup (75+ band: 61%, vs 52% for under-45s). Each patient in an engagement campaign is scored HIGH / MEDIUM / LOW and sorted accordingly. |
+
+To use locally, place the files in `data/` before running.
 
 ---
 
@@ -207,6 +220,9 @@ pharmagent/
 │   ├── pharmagent-stock-review/
 │   ├── pharmagent-patient-engagement/
 │   └── pharmagent-daily-briefing/
+├── data/                             # Clinical datasets (gitignored)
+│   ├── Interaction Safety Agent.json # 80 DDI records (DrugBank 6.0 / Micromedex)
+│   └── patient_adherence_dataset.csv # 5,000-record adherence study
 ├── tests/
 ├── scripts/
 │   └── seed.py                       # Demo data seeder
