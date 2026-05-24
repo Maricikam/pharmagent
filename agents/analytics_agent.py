@@ -100,6 +100,7 @@ def prioritize_patients() -> dict:
                 "urgency_score": round(score, 1),
                 "overdue_days": overdue_days,
                 "num_medications": num_meds,
+                "medications": [rx.medication.name for rx in rxs],
                 "adherence_risk": risk_result["risk_level"],
             })
     finally:

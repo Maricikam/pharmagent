@@ -387,4 +387,102 @@ class TestOrchestratorAgent:
         from agents.orchestrator_agent import run_orchestrator
         result = run_orchestrator("Quick status check.")
         assert isinstance(result, str)
+
+
+class TestAnalyticsAgent:
+    _MOCK_PRIORITY_REPORT = (
+        "Patient Priority List\n"
+        "---------------------\n"
+        "[URGENT] Test Patient — overdue 3 days. Collect Warfarin today.\n"
+        "[ROUTINE] No further urgent cases.\n"
+        "Priority actions:\n"
+        "1. Contact Test Patient immediately."
+    )
+    _MOCK_ANOMALY_REPORT = (
+        "Anomaly Detection Report\n"
+        "------------------------\n"
+        "[WARNING] 1 patient with overdue collection.\n"
+        "[ADVISORY] No polypharmacy patients flagged.\n"
+        "Priority actions:\n"
+        "1. Follow up overdue patient."
+    )
+    _MOCK_WORKFLOW_REPORT = (
+        "Workflow Optimization Analysis\n"
+        "-------------------------------\n"
+        "[IMMEDIATE] Review reorder thresholds for low-stock items.\n"
+        "[THIS WEEK] Schedule adherence outreach for high-risk patients.\n"
+        "[NEXT MONTH] Review supplier lead times.\n"
+        "Priority actions:\n"
+        "1. Adjust reorder thresholds.\n"
+        "2. Run adherence campaign."
+    )
+
+    @patch("anthropic.Anthropic")
+    def test_prioritize_patients_structure(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_PRIORITY_REPORT)]
+        )
+        from agents.analytics_agent import prioritize_patients
+        result = prioritize_patients()
+        assert isinstance(result, dict)
+        assert "patients" in result
+        assert "report" in result
+        assert "urgent_count" in result
+        assert "high_count" in result
+        assert "routine_count" in result
+
+    @patch("anthropic.Anthropic")
+    def test_prioritize_patients_includes_medications(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_PRIORITY_REPORT)]
+        )
+        from agents.analytics_agent import prioritize_patients
+        result = prioritize_patients()
+        assert isinstance(result["patients"], list)
+        if result["patients"]:
+            p = result["patients"][0]
+            assert "medications" in p
+            assert isinstance(p["medications"], list)
+            assert "name" in p
+            assert "priority" in p
+            assert p["priority"] in ("URGENT", "HIGH", "ROUTINE")
+
+    @patch("anthropic.Anthropic")
+    def test_detect_anomalies_structure(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_ANOMALY_REPORT)]
+        )
+        from agents.analytics_agent import detect_anomalies
+        result = detect_anomalies()
+        assert isinstance(result, dict)
+        assert "signals" in result
+        assert "report" in result
+        assert "anomaly_count" in result
+        s = result["signals"]
+        assert "overdue_patients" in s
+        assert "polypharmacy_patients" in s
+        assert "recent_emergency_supplies" in s
+        assert "shortage_risk_items" in s
+
+    @patch("anthropic.Anthropic")
+    def test_workflow_optimization_structure(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_WORKFLOW_REPORT)]
+        )
+        from agents.analytics_agent import get_workflow_optimization
+        result = get_workflow_optimization()
+        assert isinstance(result, dict)
+        assert "report" in result
+        assert "action_counts" in result
+        assert isinstance(result["action_counts"], dict)
+
+    @patch("anthropic.Anthropic")
+    def test_workflow_report_contains_timeframes(self, mock_anthropic):
+        mock_anthropic.return_value.messages.create.return_value = MagicMock(
+            content=[MagicMock(text=self._MOCK_WORKFLOW_REPORT)]
+        )
+        from agents.analytics_agent import get_workflow_optimization
+        result = get_workflow_optimization()
+        report = result["report"]
+        assert any(tag in report for tag in ("[IMMEDIATE]", "[THIS WEEK]", "[NEXT MONTH]"))
         assert len(result) > 0

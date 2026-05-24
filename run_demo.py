@@ -44,6 +44,25 @@ Contacted 3 patients via SMS:
   • William Stevenson — "Hi William, time to collect your Metformin. Call 0141 555 0199."
 """.strip()
 
+DEMO_ANALYTICS = """
+PATIENT PRIORITISATION
+  [URGENT]  Susan Graham       — 6d overdue | 1 med | HIGH adherence risk
+  [URGENT]  Thomas Robertson   — 4d overdue | 2 meds | HIGH adherence risk
+  [HIGH]    Margaret Campbell  — 3 meds | HIGH adherence risk
+  [ROUTINE] William Stevenson  — 4 meds
+
+ANOMALY DETECTION
+  Overdue collections:    3 patients
+  Polypharmacy (5+ meds): 0 patients
+  Emergency supplies (7d): 0
+  Stock shortage risk:    2 medications (<14 days supply)
+
+WORKFLOW OPTIMISATION
+  [IMMEDIATE]  Review reorder thresholds — 4 medications below threshold
+  [THIS WEEK]  Run adherence campaign targeting overdue patients
+  [NEXT MONTH] Analyse supplier lead times for high-demand medications
+""".strip()
+
 
 def section(title):
     print("\n" + "─" * 65)
@@ -105,7 +124,29 @@ def main():
         print("Orchestrator would coordinate Stock + Engagement agents and synthesise a single briefing.")
         print("Run with ANTHROPIC_API_KEY set to see the live multi-agent output.")
 
-    section("DEMO 5 — Audit Trail")
+    section("DEMO 5 — Analytics Agent")
+    if LIVE:
+        from agents.analytics_agent import prioritize_patients, detect_anomalies, get_workflow_optimization
+        print("Patient prioritisation:")
+        priority = prioritize_patients()
+        for p in priority["patients"][:4]:
+            meds = ", ".join(p["medications"]) if p["medications"] else "—"
+            print(f"  [{p['priority']}] {p['name']} — {p['num_medications']} med(s) | {meds}")
+        print(f"\nAnomalies:")
+        anomalies = detect_anomalies()
+        s = anomalies["signals"]
+        print(f"  Overdue collections: {s['overdue_patients']}")
+        print(f"  Polypharmacy patients: {s['polypharmacy_patients']}")
+        print(f"  Stock shortage risk: {len(s['shortage_risk_items'])} items")
+        print(f"\nWorkflow optimisation:")
+        workflow = get_workflow_optimization()
+        for line in workflow["report"].split("\n"):
+            if any(t in line for t in ("[IMMEDIATE]", "[THIS WEEK]", "[NEXT MONTH]")):
+                print(f"  {line.strip()}")
+    else:
+        print(DEMO_ANALYTICS)
+
+    section("DEMO 6 — Audit Trail")
     from tools.pharmacy_tools import get_recent_audit_logs
     logs = get_recent_audit_logs(limit=6)
     for log in logs:

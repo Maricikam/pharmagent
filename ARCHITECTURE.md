@@ -14,25 +14,29 @@ PharmAgent follows a three-layer agent architecture as recommended by Anthropic'
 │                  ORCHESTRATION LAYER                        │
 │                   OrchestratorAgent                         │
 │         Accepts plain English, routes to sub-agents         │
-└──────────┬──────────────┬──────────────────┬────────────────┘
-           │              │                  │
-┌──────────▼──┐  ┌────────▼───────┐  ┌──────▼──────────────┐
-│ Interaction │  │    Stock       │  │     Patient         │
-│   Safety   │  │ Intelligence   │  │   Engagement        │
-│   Agent    │  │    Agent       │  │     Agent           │
-└──────────┬──┘  └────────┬───────┘  └──────┬──────────────┘
-           │              │                  │
-┌──────────▼──────────────▼──────────────────▼──────────────┐
-│                      TOOL LAYER                            │
-│   DB queries · Stock checks · Supplier API · Audit log    │
-│   Patient lookup · Message dispatch · Prescription fetch  │
-└─────────────────────────┬─────────────────────────────────┘
+└───┬──────────┬──────────┬──────────┬──────────┬────────────┘
+    │          │          │          │          │
+┌───▼───┐ ┌───▼───┐ ┌────▼───┐ ┌───▼────┐ ┌───▼──────────┐
+│Inter- │ │Stock  │ │Patient │ │Hand-   │ │Emergency     │
+│action │ │Intel- │ │Engage- │ │over    │ │Supply        │
+│Safety │ │ligence│ │ment    │ │Agent   │ │Agent         │
+└───┬───┘ └───┬───┘ └────┬───┘ └───┬────┘ └───┬──────────┘
+    │         │          │         │           │
+┌───▼─────────▼──────────▼─────────▼───────────▼──────────┐
+│                      TOOL LAYER                          │
+│  DB queries · Stock checks · Supplier API · Audit log   │
+│  Patient lookup · Message dispatch · Anomaly signals    │
+└─────────────────────────┬────────────────────────────────┘
                           │
-┌─────────────────────────▼─────────────────────────────────┐
-│                    DATA LAYER                              │
-│         PostgreSQL (DataVita Scottish infrastructure)      │
-│    Patients · Prescriptions · Inventory · Audit Logs      │
-└───────────────────────────────────────────────────────────┘
+┌─────────────────────────▼────────────────────────────────┐
+│                    DATA LAYER                            │
+│        PostgreSQL (DataVita Scottish infrastructure)     │
+│   Patients · Prescriptions · Inventory · Audit Logs     │
+└──────────────────────────────────────────────────────────┘
+
+                  AnalyticsAgent (read-only, no orchestration)
+                  Calls tool layer directly for prioritisation,
+                  anomaly detection, and workflow optimisation.
 ```
 
 ---
@@ -61,7 +65,7 @@ The tool layer contains all deterministic, testable functions that interact with
 
 **Location:** `agents/`
 
-Three specialist agents, each with a bounded domain of responsibility. Each agent receives tool outputs and applies Claude reasoning to generate decisions, recommendations, or actions.
+Seven specialist agents, each with a bounded domain of responsibility. Each agent receives tool outputs and applies Claude reasoning to generate decisions, recommendations, or actions.
 
 ### Interaction Safety Agent
 **File:** `agents/interaction_safety_agent.py`
@@ -88,6 +92,33 @@ Uses Claude to generate a personalised message for each patient — tailored to 
 
 **Output:** Campaign summary with per-patient message previews, delivery status, adherence risk scores, and risk factors per patient.
 
+### Handover Agent
+**File:** `agents/handover_agent.py`
+
+Generates a structured NHS shift handover note covering the last 12 hours of audit activity, stock alerts, patients due for urgent refill within 3 days, and any HIGH-risk interaction flags raised during the shift.
+
+**Output:** Structured handover report ready to hand to the incoming pharmacist.
+
+### Emergency Supply Agent
+**File:** `agents/emergency_supply_agent.py`
+
+Processes emergency medication supply requests when a patient has run out and cannot reach their GP. Resolves the patient by CHI or name, runs a full interaction check on the supplied medication, and generates a legally formatted NHS Scotland supply record including the 72-hour prescriber notification requirement and 2-year record retention reminder.
+
+**Output:** NHS-format emergency supply record with interaction check result and compliance checklist.
+
+### Analytics Agent
+**File:** `agents/analytics_agent.py`
+
+Read-only agent — does not write to the database. Called directly (not via the Orchestrator) and exposes three predictive capabilities:
+
+- **Patient prioritisation** — scores every active patient by clinical urgency (overdue days × 3 + adherence risk score × 20 + medication count). Returns a sorted URGENT / HIGH / ROUTINE list with medication names included for each patient, renderable as structured cards in the dashboard.
+- **Anomaly detection** — identifies overdue collections, polypharmacy patients (5+ active medications), emergency supply frequency spikes, and medications with fewer than 14 days of stock at current prescription demand.
+- **Workflow optimisation** — analyses recent audit history and prescription demand patterns to generate concrete recommendations tagged `[IMMEDIATE]`, `[THIS WEEK]`, or `[NEXT MONTH]`.
+
+Exposed via the dashboard **Analytics tab** (three sub-buttons: Patient prioritisation, Anomaly detection, Workflow optimisation) and via the `pharmagent-analytics` OpenClaw skill.
+
+**Output:** Structured patient cards with urgency scores and medication lists; anomaly signal counts with per-patient detail; timeframe-tagged workflow recommendations.
+
 ---
 
 ## Layer 3 — Orchestration Layer
@@ -112,7 +143,7 @@ The Orchestrator is the single entry point for all natural language requests, wh
 
 **Location:** `skills/`
 
-Four AgentSkills-compatible `SKILL.md` files teach an OpenClaw instance how to call PharmAgent from any connected chat app (WhatsApp, Telegram, Discord).
+Eight AgentSkills-compatible `SKILL.md` files teach an OpenClaw instance how to call PharmAgent from any connected chat app (WhatsApp, Telegram, Discord).
 
 | Skill | Triggers | Calls |
 |---|---|---|
@@ -120,6 +151,10 @@ Four AgentSkills-compatible `SKILL.md` files teach an OpenClaw instance how to c
 | `pharmagent-interaction-check` | "Check patient before I dispense" | `POST /agents/interaction-check` |
 | `pharmagent-stock-review` | "What's running low?" | `POST /agents/stock-review` |
 | `pharmagent-patient-engagement` | "Send SMS reminders" | `POST /agents/engagement-campaign` |
+| `pharmagent-patient-profile` | "What is Margaret on?" | `GET /agents/patient-profile` |
+| `pharmagent-handover` | "Generate handover notes" | `GET /agents/handover` |
+| `pharmagent-emergency-supply` | "Emergency supply for Robertson" | `POST /agents/emergency-supply` |
+| `pharmagent-analytics` | "Prioritise my patients", "Any anomalies?" | `GET /agents/analytics/*` |
 
 The daily briefing skill can also be scheduled as a cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
 
@@ -132,12 +167,19 @@ The daily briefing skill can also be scheduled as a cron task in OpenClaw, deliv
 FastAPI application exposing all agent functionality as HTTP endpoints. Includes:
 
 - `GET /health` — system status and AI readiness check
-- `GET /demo` — full showcase of all three agents (no auth required)
-- `GET /docs` — interactive Swagger UI for judges and developers
+- `GET /demo` — full showcase response (no auth required)
+- `GET /docs` — interactive Swagger UI
 - `POST /agents/orchestrate` — plain English intent routing
 - `POST /agents/interaction-check` — interaction safety check
 - `POST /agents/stock-review` — stock intelligence review
 - `POST /agents/engagement-campaign` — patient engagement campaign
+- `GET /agents/patient-profile` — full medication profile by CHI or name
+- `GET /agents/handover` — shift handover note
+- `POST /agents/emergency-supply` — emergency supply record with interaction check
+- `GET /agents/analytics/prioritize-patients` — urgency-scored patient list
+- `GET /agents/analytics/anomalies` — anomaly detection report
+- `GET /agents/analytics/workflow` — workflow optimisation recommendations
+- `GET /agents/analytics/workload` — prescriptions due per day (no AI call)
 - `GET /audit/logs` — recent audit trail entries (NFR-04 compliance)
 
 **Live:** https://web-production-1f27a.up.railway.app

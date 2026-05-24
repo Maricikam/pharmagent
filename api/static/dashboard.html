@@ -242,7 +242,10 @@
   .anl-priority-badge.urgent { background: #fef2f2; color: #dc2626; }
   .anl-priority-badge.high   { background: #fffbeb; color: #d97706; }
   .anl-priority-badge.routine{ background: #f0fdf4; color: #1D9E75; }
-  .anl-fact { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #6b7280; padding: 2px 8px; background: #f3f4f6; border-radius: 10px; margin: 2px 3px 2px 0; }
+  .anl-fact { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #6b7280; padding: 2px 8px; background: #f3f4f6; border-radius: 10px; margin: 2px 3px 2px 0; position: relative; }
+  .anl-fact[data-tooltip] { cursor: default; }
+  .anl-fact[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; font-size: 11px; line-height: 1.5; padding: 5px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 50; max-width: 260px; white-space: normal; text-align: center; }
+  .anl-fact[data-tooltip]:hover::after { opacity: 1; }
   .anl-signal-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; margin-bottom: 6px; }
   .anl-signal-name { font-size: 14px; font-weight: 600; color: #1a1a2e; flex: 1; }
   .anl-signal-detail { font-size: 12px; color: #9ca3af; }
@@ -474,7 +477,7 @@
       <div class="card-title"><i class="ti ti-chart-bar"></i> Analytics</div>
       <p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:1.25rem">Predictive insights powered by the Analytics Agent. Requires Live AI mode.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0">
-        <button class="btn btn-primary" id="anl-priority-btn" onclick="runAnalytics('prioritize')" style="margin-top:0">
+        <button class="btn btn-primary" id="anl-priority-btn" onclick="runAnalytics('prioritize')" style="margin-top:0;background:#0891b2">
           <i class="ti ti-users"></i> Patient prioritisation
         </button>
         <button class="btn btn-primary" id="anl-anomaly-btn" onclick="runAnalytics('anomalies')" style="background:#d97706;margin-top:0">
@@ -1256,7 +1259,8 @@ async function runAnalytics(type) {
         pts.forEach(p => {
           let facts = '';
           if (p.overdue_days > 0) facts += `<span class="anl-fact" style="color:#dc2626;background:#fef2f2"><i class="ti ti-clock" style="font-size:11px"></i> ${p.overdue_days}d overdue</span>`;
-          facts += `<span class="anl-fact"><i class="ti ti-pill" style="font-size:11px"></i> ${p.num_medications} med${p.num_medications!==1?'s':''}</span>`;
+          const medTip = (p.medications||[]).join(', ');
+          facts += `<span class="anl-fact"${medTip?` data-tooltip="${medTip}"`:''}><i class="ti ti-pill" style="font-size:11px"></i> ${p.num_medications} med${p.num_medications!==1?'s':''}</span>`;
           if (p.adherence_risk && p.adherence_risk!=='LOW') facts += `<span class="anl-fact" style="${p.adherence_risk==='HIGH'?'color:#d97706;background:#fffbeb':''}"><i class="ti ti-activity" style="font-size:11px"></i> ${p.adherence_risk} adherence risk</span>`;
           html += `<div class="anl-patient-card ${g.cls}">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
