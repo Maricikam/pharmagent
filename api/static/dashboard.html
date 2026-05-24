@@ -116,6 +116,20 @@
   .ai-table tr:last-child td { border-bottom: none; }
   .ai-table tr:hover td { background: #f9fafb; }
   .topbar-badge { margin-left: auto; }
+  .alert-wrap { position: relative; }
+  .alert-tooltip {
+    display: none; position: absolute; top: calc(100% + 10px); right: 0;
+    background: #fff; border: 1px solid #e5e9f0; border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.13); padding: 12px 14px;
+    min-width: 230px; z-index: 999; font-size: 12px; color: #1a1a2e; white-space: nowrap;
+  }
+  .alert-wrap:hover .alert-tooltip { display: block; }
+  .alert-tip-label { font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #9ca3af; margin-bottom: 5px; }
+  .alert-tip-row { display: flex; justify-content: space-between; gap: 16px;
+    padding: 3px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; }
+  .alert-tip-row:last-child { border-bottom: none; }
+  .alert-tip-sep { margin: 8px 0 6px; border-top: 1px solid #f3f4f6; }
   .eng-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
 .eng-stat { background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 10px; padding: .875rem 1rem; }
 .eng-stat-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -208,7 +222,10 @@
   <div class="logo" onclick="location.reload()" title="Reset" style="cursor:pointer"><i class="ti ti-pill"></i></div>
   <span class="topbar-title">PharmAgent AI</span>
   <span class="topbar-sub">— Pharmacy Management</span>
-  <span class="topbar-alert" id="topbar-alert"><i class="ti ti-alert-triangle" style="font-size:13px"></i><span id="topbar-alert-text"></span></span>
+  <div class="alert-wrap">
+    <span class="topbar-alert" id="topbar-alert"><i class="ti ti-alert-triangle" style="font-size:13px"></i><span id="topbar-alert-text"></span></span>
+    <div class="alert-tooltip" id="alert-tooltip"></div>
+  </div>
   <span class="topbar-badge" id="ai-badge"><i class="ti ti-loader" style="font-size:13px;vertical-align:-1px"></i> Connecting…</span>
 </div>
 
@@ -415,11 +432,34 @@ async function loadTopbarAlert() {
       fetch(BASE + '/stock/low', { headers: authHeaders() }).then(r => r.json()),
       fetch(BASE + '/stock/expiring', { headers: authHeaders() }).then(r => r.json()),
     ]);
-    const count = (lowRes.low_stock || []).length + (expRes.expiring_stock || []).length;
+    const low = lowRes.low_stock || [];
+    const exp = expRes.expiring_stock || [];
+    const count = low.length + exp.length;
     if (count > 0) {
       document.getElementById('topbar-alert-text').textContent = count + ' alert' + (count > 1 ? 's' : '');
       document.getElementById('topbar-alert').classList.add('show');
+    } else {
+      document.getElementById('topbar-alert').classList.remove('show');
     }
+    let tip = '';
+    if (low.length > 0) {
+      tip += `<div class="alert-tip-label">Low stock (${low.length})</div>`;
+      low.forEach(i => {
+        const name = i.medication || i.name || '—';
+        const qty = i.quantity ?? i.current_stock ?? '?';
+        tip += `<div class="alert-tip-row"><span>${name}</span><span style="color:#dc2626;font-weight:600">${qty} units</span></div>`;
+      });
+    }
+    if (exp.length > 0) {
+      if (low.length > 0) tip += '<div class="alert-tip-sep"></div>';
+      tip += `<div class="alert-tip-label">Expiring soon (${exp.length})</div>`;
+      exp.forEach(i => {
+        const name = i.medication || i.name || '—';
+        const date = i.expiry_date || i.expires || '—';
+        tip += `<div class="alert-tip-row"><span>${name}</span><span style="color:#d97706;font-weight:600">${date}</span></div>`;
+      });
+    }
+    document.getElementById('alert-tooltip').innerHTML = tip || '<span style="color:#6b7280">No alerts</span>';
   } catch {}
 }
 loadTopbarAlert();
