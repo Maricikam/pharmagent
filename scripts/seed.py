@@ -319,5 +319,68 @@ def seed():
     print("  2201380015  Thomas Robertson    — Warfarin + Ibuprofen (!)     → try: Aspirin, Amiodarone")
 
 
+# Prescription due-date offsets (days from today, negative = overdue).
+# Maintained separately so refresh_due_dates() can re-apply them on every
+# startup without wiping the database.
+_DUE_OFFSETS = {
+    # Overdue patients — always show as urgent
+    ("2201380015", "warfarin"):       -4,   # Thomas Robertson
+    ("2201380015", "ibuprofen"):      -3,
+    ("1509580018", "sertraline"):     -6,   # Susan Graham
+    ("0312430019", "digoxin"):        -2,   # William Stevenson
+    ("0312430019", "furosemide"):     -2,
+    # Due today / tomorrow
+    ("1203480016", "aspirin"):         1,   # Margaret Campbell
+    ("2407550013", "clarithromycin"):  2,   # James Morrison
+    # Due this week
+    ("1203480016", "warfarin"):        5,
+    ("1902670019", "alendronate"):     5,
+    ("0811620018", "lisinopril"):      7,
+    ("0811620018", "spironolactone"):  7,
+    ("0312430019", "amiodarone"):      8,
+    ("1902670019", "prednisolone"):    8,
+    ("1902670019", "calcium_vitd"):    8,
+    # Due next week
+    ("2407550013", "atorvastatin"):   10,
+    ("2706800011", "omeprazole"):     10,
+    ("2706800011", "clopidogrel"):    10,
+    ("0312430019", "bisoprolol"):     10,
+    # Due in 2-3 weeks
+    ("3004710013", "metformin"):      15,
+    ("1108530028", "salbutamol"):     20,
+    ("1108530028", "beclometasone"):  20,
+    ("1108530028", "montelukast"):    20,
+}
+
+
+def refresh_due_dates():
+    """
+    Re-apply prescription due dates relative to today.
+    Called on every startup so the demo always shows a realistic mix
+    of overdue, due-soon, and upcoming patients — regardless of when it runs.
+    """
+    db = SessionLocal()
+    try:
+        from db.models import Patient, Medication, Prescription
+        today = datetime.today()
+        for (nhs, generic), days in _DUE_OFFSETS.items():
+            patient = db.query(Patient).filter(Patient.nhs_number == nhs).first()
+            if not patient:
+                continue
+            med = db.query(Medication).filter(Medication.generic_name == generic).first()
+            if not med:
+                continue
+            rx = (db.query(Prescription)
+                  .filter(Prescription.patient_id == patient.id,
+                          Prescription.medication_id == med.id,
+                          Prescription.active == True)
+                  .first())
+            if rx:
+                rx.next_due_date = (today + timedelta(days=days)).strftime("%Y-%m-%d")
+        db.commit()
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed()

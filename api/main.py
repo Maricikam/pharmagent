@@ -41,10 +41,13 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 def startup():
     from db.database import init_db
     from tools.pharmacy_tools import get_patient_by_nhs
+    from scripts.seed import refresh_due_dates
     init_db()
     if "error" in get_patient_by_nhs("1203480016"):
         from scripts.seed import seed
         seed()
+    else:
+        refresh_due_dates()
 
 
 app.state.limiter = limiter

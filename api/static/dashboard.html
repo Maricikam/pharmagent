@@ -286,11 +286,11 @@
   </div>
 
   <nav class="nav">
-    <button class="nav-btn active" onclick="showTab('interaction', this)"><i class="ti ti-shield-check"></i> Interaction check</button>
-    <button class="nav-btn" onclick="showTab('stock', this)"><i class="ti ti-box"></i> Stock review</button>
-    <button class="nav-btn" onclick="showTab('patient', this)"><i class="ti ti-user"></i> Patient lookup</button>
-    <button class="nav-btn" onclick="showTab('engagement', this)"><i class="ti ti-mail"></i> Engagement</button>
-    <button class="nav-btn" onclick="showTab('audit', this); loadAuditLog()"><i class="ti ti-clipboard-list"></i> Audit log</button>
+    <button class="nav-btn active" onclick="showTab('interaction', this)" title="Check a patient's active medications against a new prescription for drug interaction risks. Uses 80 validated DDI records from DrugBank and Micromedex."><i class="ti ti-shield-check"></i> Interaction check</button>
+    <button class="nav-btn" onclick="showTab('stock', this)" title="AI-powered inventory review — flags low stock, predicts shortages based on prescription demand, and triggers smart reorders."><i class="ti ti-box"></i> Stock review</button>
+    <button class="nav-btn" onclick="showTab('patient', this)" title="Look up a patient's full active medication profile by CHI number or name."><i class="ti ti-user"></i> Patient lookup</button>
+    <button class="nav-btn" onclick="showTab('engagement', this)" title="Generate personalised SMS or email reminders for patients due for refills. Patients scored by adherence risk — high-risk patients contacted first."><i class="ti ti-mail"></i> Engagement</button>
+    <button class="nav-btn" onclick="showTab('audit', this); loadAuditLog()" title="Full audit trail of all agent actions — interaction checks, reorders, messages sent, emergency supplies. Required for NHS regulatory compliance."><i class="ti ti-clipboard-list"></i> Audit log</button>
   </nav>
 
   <div id="interaction" class="section active">
@@ -558,6 +558,7 @@ async function confirmReorder() {
     }
     closeModal();
     showToast('Order placed (' + qty + ' units) — Ref: ' + (data.reference || 'confirmed'));
+    loadTopbarAlert();
   } catch(e) {
     confirmBtn.disabled = false;
     confirmBtn.innerHTML = '<i class="ti ti-check"></i> Place order';
@@ -673,6 +674,15 @@ async function runStockReview() {
     const low = lowRes.low_stock || lowRes.items || [];
     const exp = expRes.expiring_stock || expRes.items || [];
     window._lowStockItems = low;
+    const alertCount = low.length + exp.length;
+    const alertEl = document.getElementById('topbar-alert');
+    const alertText = document.getElementById('topbar-alert-text');
+    if (alertCount > 0) {
+      alertText.textContent = alertCount + ' alert' + (alertCount > 1 ? 's' : '');
+      alertEl.classList.add('show');
+    } else {
+      alertEl.classList.remove('show');
+    }
 
     let html = `<div class="stat-grid">
       <div class="stat"><div class="stat-label">Low stock items</div><div class="stat-value ${low.length > 0 ? 'danger' : 'good'}">${low.length}</div></div>
@@ -690,7 +700,7 @@ async function runStockReview() {
     if (predicted > 0)
       highlights.push({type:'warning', text:`${predicted} medication${predicted !== 1 ? 's' : ''} predicted to run short within 30 days`});
     if (orders.length > 0)
-      highlights.push({type:'good', text:`${orders.length} auto-order${orders.length !== 1 ? 's' : ''} placed automatically`});
+      highlights.push({type:'good', text:`${orders.length} reorder${orders.length !== 1 ? 's' : ''} logged to audit trail`});
     const highWaste = exp.filter(i => (i.estimated_waste || 0) > 50);
     if (highWaste.length > 0) {
       const total = highWaste.reduce((s, i) => s + (i.estimated_waste || 0), 0);
