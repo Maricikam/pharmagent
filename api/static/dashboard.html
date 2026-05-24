@@ -125,7 +125,12 @@
   .ai-table td { padding: 6px 12px; border-bottom: 1px solid #f3f4f6; color: #1a1a2e; }
   .ai-table tr:last-child td { border-bottom: none; }
   .ai-table tr:hover td { background: #f9fafb; }
-  .topbar-badge { margin-left: auto; }
+  .mode-toggle { margin-left: auto; display: flex; border: 1.5px solid #e5e9f0; border-radius: 8px; overflow: hidden; }
+  .mode-tab { padding: 5px 14px; border: none; background: #fff; color: #9ca3af; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+  .mode-tab + .mode-tab { border-left: 1.5px solid #e5e9f0; }
+  #tab-demo.active { background: #fffbeb; color: #d97706; }
+  #tab-live.active { background: #e6f7f1; color: #1D9E75; }
+  .mode-tab:disabled { opacity: 0.4; cursor: not-allowed; }
   .alert-wrap { position: relative; }
   .alert-tooltip {
     display: none; position: absolute; top: calc(100% + 10px); right: 0;
@@ -203,7 +208,7 @@
   .btn-download.show { display: inline-flex; }
   @media print {
     body { background: #fff; color: #000; }
-    .topbar, .demo-banner, .nav, .briefing-icon, .briefing-sub, .briefing-meta,
+    .topbar, .mode-toggle, .nav, .briefing-icon, .briefing-sub, .briefing-meta,
     .btn-briefing, .btn-download, #interaction, #stock, #patient, #engagement, #audit,
     .modal-overlay, .toast { display: none !important; }
     .main { max-width: 100%; margin: 0; padding: 1cm; }
@@ -236,7 +241,10 @@
     <span class="topbar-alert" id="topbar-alert"><i class="ti ti-alert-triangle" style="font-size:13px"></i><span id="topbar-alert-text"></span></span>
     <div class="alert-tooltip" id="alert-tooltip"></div>
   </div>
-  <span class="topbar-badge" id="ai-badge"><i class="ti ti-loader" style="font-size:13px;vertical-align:-1px"></i> Connecting…</span>
+  <div class="mode-toggle">
+    <button class="mode-tab active" id="tab-demo" onclick="setMode('demo')"><i class="ti ti-flask" style="font-size:13px"></i> Demo</button>
+    <button class="mode-tab" id="tab-live" onclick="setMode('live')" disabled><i class="ti ti-circle-check" style="font-size:13px"></i> Live AI</button>
+  </div>
 </div>
 
 <div class="modal-overlay" id="reorder-modal">
@@ -342,13 +350,6 @@
     </div>
     <div class="print-header" id="print-header"></div>
     <div class="briefing-result" id="briefing-result"></div>
-  </div>
-
-  <div class="demo-banner">
-    <i class="ti ti-flask"></i>
-    <div>
-      <strong>Demo mode</strong> — sample patients loaded. Use the quick-fill buttons below to try each feature instantly.
-    </div>
   </div>
 
   <nav class="nav">
@@ -459,21 +460,26 @@ function authHeaders(includeContentType = false) {
   return h;
 }
 
-// ── Health check / badge ───────────────────────────────────────────────────
+// ── Mode toggle ───────────────────────────────────────────────────────────
+let _aiReady = false;
+function setMode(m) {
+  if (m === 'live' && !_aiReady) return;
+  document.getElementById('tab-demo').classList.toggle('active', m === 'demo');
+  document.getElementById('tab-live').classList.toggle('active', m === 'live');
+  document.querySelectorAll('.demo-chips').forEach(el => { el.style.display = m === 'demo' ? '' : 'none'; });
+}
+
+// ── Health check ──────────────────────────────────────────────────────────
 async function checkHealth() {
-  const badge = document.getElementById('ai-badge');
   try {
     const data = await fetch(BASE + '/health').then(r => r.json());
-    if (data.ai_ready) {
-      badge.innerHTML = '<i class="ti ti-circle-check" style="font-size:13px;vertical-align:-1px"></i> Live AI';
-      badge.style.cssText = 'background:#e6f7f1;color:#1D9E75';
-    } else {
-      badge.innerHTML = '<i class="ti ti-flask" style="font-size:13px;vertical-align:-1px"></i> Demo mode';
-      badge.style.cssText = 'background:#f3f4f6;color:#6b7280';
-    }
+    _aiReady = !!data.ai_ready;
+    const liveTab = document.getElementById('tab-live');
+    liveTab.disabled = !_aiReady;
+    if (_aiReady) setMode('live'); else setMode('demo');
   } catch {
-    badge.innerHTML = '<i class="ti ti-wifi-off" style="font-size:13px;vertical-align:-1px"></i> Offline';
-    badge.style.cssText = 'background:#fef2f2;color:#dc2626';
+    document.getElementById('tab-live').disabled = true;
+    setMode('demo');
   }
 }
 checkHealth();
