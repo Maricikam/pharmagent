@@ -30,8 +30,9 @@ import os
 import anthropic
 import json
 from datetime import datetime
-from tools.pharmacy_tools import (get_patients_due_refill, get_active_prescriptions,
-                                   send_patient_message, log_audit_event)
+from tools.pharmacy_tools import (get_patients_due_refill, get_overdue_patients,
+                                   get_active_prescriptions, send_patient_message,
+                                   log_audit_event)
 from config import MODEL
 
 
@@ -264,11 +265,20 @@ def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms",
     Patients are scored for adherence risk and sorted highest-risk first.
     Returns a summary of all outreach actions taken.
     """
-    patients_due = get_patients_due_refill(days_ahead=days_ahead)
-
-    if not patients_due:
-        return {"message": "No patients due for refills in this window.",
-                "sent": [], "patients_contacted": 0, "results": []}
+    if campaign_type == "adherence_check":
+        overdue = get_overdue_patients()
+        patients_due = [
+            {**p, "medication": p["medication"]}
+            for p in overdue
+        ]
+        if not patients_due:
+            return {"message": "No overdue patients found.",
+                    "sent": [], "patients_contacted": 0, "results": []}
+    else:
+        patients_due = get_patients_due_refill(days_ahead=days_ahead)
+        if not patients_due:
+            return {"message": "No patients due for refills in this window.",
+                    "sent": [], "patients_contacted": 0, "results": []}
 
     # Group by patient and collect due medications
     patient_map: dict[int, dict] = {}

@@ -242,6 +242,29 @@ def get_recent_audit_logs(limit: int = 20) -> list[dict]:
 
 # ── ANALYTICS TOOLS ───────────────────────────────────────────────────────────
 
+def get_workload_preview(days: int = 7) -> list[dict]:
+    """Count prescriptions due per day for the next N days."""
+    db = _db()
+    try:
+        today = datetime.today()
+        result = []
+        for i in range(days):
+            day = (today + timedelta(days=i)).strftime("%Y-%m-%d")
+            day_label = (today + timedelta(days=i)).strftime("%A %d/%m")
+            count = (db.query(Prescription)
+                     .filter(Prescription.active == True,
+                             Prescription.next_due_date == day)
+                     .count())
+            result.append({
+                "date": day,
+                "day_label": day_label,
+                "prescriptions_due": count,
+            })
+        return result
+    finally:
+        db.close()
+
+
 def get_prescription_demand() -> list[dict]:
     """Count active prescriptions per medication — proxy for daily demand and days of supply."""
     db = _db()
@@ -300,6 +323,7 @@ def get_overdue_patients() -> list[dict]:
                 "nhs_number": rx.patient.nhs_number,
                 "name": f"{rx.patient.first_name} {rx.patient.last_name}",
                 "phone": rx.patient.phone,
+                "email": rx.patient.email,
                 "next_due_date": rx.next_due_date,
                 "days_overdue": days_overdue,
                 "medication": rx.medication.name,

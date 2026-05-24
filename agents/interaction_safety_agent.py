@@ -164,7 +164,14 @@ def _find_relevant_ddi(active_meds: list, new_medication: str | None) -> list:
     if not _DDI_RECORDS:
         return []
 
-    med_names = [rx.get("medication_name", "").lower() for rx in active_meds]
+    med_names = []
+    for rx in active_meds:
+        name = rx.get("medication", rx.get("medication_name", "")).lower()
+        generic = rx.get("generic_name", "").lower()
+        if name:
+            med_names.append(name)
+        if generic and generic != name:
+            med_names.append(generic)
     if new_medication:
         med_names.append(new_medication.lower())
 
@@ -240,16 +247,50 @@ Respond in clean markdown using these sections:
 """
 
 
+def _severity_to_recommendation(severity: str) -> str:
+    if severity == "HIGH":
+        return "DO NOT DISPENSE without prescriber review"
+    if severity == "MODERATE":
+        return "Pharmacist review recommended — monitor closely"
+    return "Safe to dispense with standard counselling"
+
+
+def _overall_risk_level(matched_ddi: list, report_text: str) -> str:
+    if any(m["severity"] == "HIGH" for m in matched_ddi):
+        return "HIGH"
+    if any(m["severity"] == "MODERATE" for m in matched_ddi):
+        return "MODERATE"
+    if matched_ddi:
+        return "LOW"
+    t = report_text.upper()
+    if "DO NOT DISPENSE" in t or re.search(r"\bHIGH\b", t):
+        return "HIGH"
+    if "PHARMACIST REVIEW" in t or re.search(r"\bMODERATE\b", t):
+        return "MODERATE"
+    return "LOW"
+
+
 def check_interactions(nhs_number: str, new_medication: str = None,
-                       _patient: dict = None, _prescriptions: list = None) -> str:
+                       _patient: dict = None, _prescriptions: list = None) -> dict:
+    """
+    Returns a dict with keys:
+        text                — full clinical report (markdown)
+        risk_level          — HIGH / MODERATE / LOW
+        interactions_detected — list of structured interaction records
+        patient             — patient dict
+        prescriptions       — list of active prescription dicts
+    """
     client = anthropic.Anthropic()
     patient = _patient if _patient is not None else get_patient_by_nhs(nhs_number)
     if "error" in patient:
-        return patient["error"]
+        return {"text": patient["error"], "risk_level": "UNKNOWN",
+                "interactions_detected": [], "patient": patient, "prescriptions": []}
 
     prescriptions = _prescriptions if _prescriptions is not None else get_active_prescriptions(patient["id"])
     if not prescriptions:
-        return f"No active prescriptions found for {patient['name']}."
+        msg = f"No active prescriptions found for {patient['name']}."
+        return {"text": msg, "risk_level": "LOW",
+                "interactions_detected": [], "patient": patient, "prescriptions": []}
 
     from datetime import datetime
     try:
@@ -257,11 +298,11 @@ def check_interactions(nhs_number: str, new_medication: str = None,
         age = (datetime.today() - dob).days // 365
         age_note = f"Patient age: {age} years old"
     except Exception:
+        age = None
         age_note = ""
 
     new_med_line = f"\nNew medication being considered: **{new_medication}**" if new_medication else ""
 
-    # Inject matched DDI records for richer clinical management guidance
     matched_ddi = _find_relevant_ddi(prescriptions, new_medication)
     ddi_section = ""
     if matched_ddi:
@@ -293,21 +334,42 @@ Please analyse the active medications{f' against the new medication ({new_medica
         model=MODEL,
         max_tokens=1000,
         system=SYSTEM_PROMPT,
-        messages=[
-            {"role": "user", "content": context},
-        ],
+        messages=[{"role": "user", "content": context}],
     )
 
-    result = response.content[0].text
+    report_text = response.content[0].text
+    risk_level = _overall_risk_level(matched_ddi, report_text)
+
+    interactions_detected = [
+        {
+            "drug_a": m["drug_a"].title(),
+            "drug_b": m["drug_b"].title(),
+            "severity": m["severity"],
+            "mechanism": m["mechanism"],
+            "clinical_effect": m["clinical_effect"],
+            "safer_alternative": m["safer_alternative"],
+            "clinical_management": m["clinical_management"],
+            "recommendation": _severity_to_recommendation(m["severity"]),
+            "evidence_source": "DrugBank/Micromedex DDI Database",
+        }
+        for m in matched_ddi
+    ]
 
     log_audit_event(
         agent="InteractionSafetyAgent",
         action="INTERACTION_CHECK",
-        details=f"Patient: {patient['name']} ({nhs_number}) | New med: {new_medication or 'N/A'} | Result: {_strip_md(result)[:200]}",
+        details=f"Patient: {patient['name']} ({nhs_number}) | New med: {new_medication or 'N/A'} | Risk: {risk_level} | DDI matches: {len(matched_ddi)}",
         patient_id=patient["id"],
     )
 
-    return result
+    return {
+        "text": report_text,
+        "risk_level": risk_level,
+        "interactions_detected": interactions_detected,
+        "patient": patient,
+        "prescriptions": prescriptions,
+        "age": age,
+    }
 
 
 if __name__ == "__main__":

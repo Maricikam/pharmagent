@@ -310,6 +310,7 @@ def interaction_check(request: Request, req: InteractionCheckRequest):
                     "name": patient["name"],
                     "nhs_number": req.nhs_number,
                     "dob": patient["date_of_birth"],
+                    "age": result.get("age"),
                 },
                 "active_medications": [
                     {"name": p["medication"], "dose": p["dosage"], "frequency": p["frequency"]}
@@ -317,9 +318,9 @@ def interaction_check(request: Request, req: InteractionCheckRequest):
                 ],
                 "new_medication": req.new_medication_name,
                 "interaction_report": {
-                    "risk_level": _parse_risk_level(result),
-                    "interactions_detected": [],
-                    "clinical_decision": result,
+                    "risk_level": result["risk_level"],
+                    "interactions_detected": result["interactions_detected"],
+                    "clinical_decision": result["text"],
                     "audit_ref": _ref(),
                     "checked_at": _ts(),
                 },
@@ -483,6 +484,24 @@ def emergency_supply_get(request: Request, medication: str, quantity: int, reaso
         prescriber_contacted=prescriber_contacted,
     )
     return emergency_supply(request, req)
+
+
+@app.get("/agents/analytics/workload", tags=["Analytics"], dependencies=[Depends(require_api_key)])
+def workload_preview(days: int = 7):
+    """Prescriptions due per day for the next N days — no AI call needed."""
+    try:
+        from tools.pharmacy_tools import get_workload_preview
+        data = get_workload_preview(days)
+        total = sum(d["prescriptions_due"] for d in data)
+        peak = max(data, key=lambda d: d["prescriptions_due"]) if data else None
+        return {
+            "days": days,
+            "total_prescriptions_due": total,
+            "peak_day": peak,
+            "workload": data,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/agents/analytics/prioritize-patients", tags=["Analytics"], dependencies=[Depends(require_api_key)])

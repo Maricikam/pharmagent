@@ -273,6 +273,7 @@ def run_orchestrator(pharmacist_request: str) -> str:
                     new_medication=tool_input.get("new_medication"),
                 )
                 agent_results["interaction_check"] = result
+                result = result["text"] if isinstance(result, dict) else result
 
             elif tool_name == "get_patient_profile":
                 nhs = tool_input.get("nhs_number")
