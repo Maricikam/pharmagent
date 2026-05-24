@@ -115,9 +115,7 @@
   .ai-table td { padding: 6px 12px; border-bottom: 1px solid #f3f4f6; color: #1a1a2e; }
   .ai-table tr:last-child td { border-bottom: none; }
   .ai-table tr:hover td { background: #f9fafb; }
-  .key-wrap { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-  .key-input { padding: 6px 10px; border: 1.5px solid #e5e9f0; border-radius: 6px; font-size: 12px; width: 150px; font-family: inherit; outline: none; color: #374151; background: #f9fafb; }
-  .key-input:focus { border-color: #1D9E75; background: #fff; }
+  .topbar-badge { margin-left: auto; }
   .eng-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
 .eng-stat { background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 10px; padding: .875rem 1rem; }
 .eng-stat-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -210,10 +208,6 @@
   <div class="logo" onclick="location.reload()" title="Reset" style="cursor:pointer"><i class="ti ti-pill"></i></div>
   <span class="topbar-title">PharmAgent AI</span>
   <span class="topbar-sub">— Pharmacy Management</span>
-  <div class="key-wrap">
-    <i class="ti ti-key" style="color:#9ca3af;font-size:15px"></i>
-    <input id="api-key-input" type="password" class="key-input" placeholder="API key (if required)">
-  </div>
   <span class="topbar-alert" id="topbar-alert"><i class="ti ti-alert-triangle" style="font-size:13px"></i><span id="topbar-alert-text"></span></span>
   <span class="topbar-badge" id="ai-badge"><i class="ti ti-loader" style="font-size:13px;vertical-align:-1px"></i> Connecting…</span>
 </div>
@@ -389,15 +383,8 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
-// ── API key ────────────────────────────────────────────────────────────────
-const keyInput = document.getElementById('api-key-input');
-keyInput.value = localStorage.getItem('pharmagent_api_key') || '';
-keyInput.addEventListener('change', () => localStorage.setItem('pharmagent_api_key', keyInput.value.trim()));
-
 function authHeaders(includeContentType = false) {
-  const key = keyInput.value.trim();
   const h = {};
-  if (key) h['X-API-Key'] = key;
   if (includeContentType) h['Content-Type'] = 'application/json';
   return h;
 }
