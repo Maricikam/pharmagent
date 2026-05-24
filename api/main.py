@@ -267,6 +267,12 @@ class ReorderRequest(BaseModel):
     quantity: int
     supplier: str
 
+class DisposeRequest(BaseModel):
+    medication_name: str
+    action: str  # "dispose" or "return"
+    quantity: int
+    expiry_date: str
+
 @app.post("/stock/reorder", tags=["Stock"], dependencies=[Depends(require_api_key)])
 def reorder_stock(req: ReorderRequest):
     try:
@@ -275,6 +281,20 @@ def reorder_stock(req: ReorderRequest):
             medication_name=req.medication_name,
             quantity=req.quantity,
             supplier=req.supplier,
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/stock/dispose", tags=["Stock"], dependencies=[Depends(require_api_key)])
+def dispose_stock_endpoint(req: DisposeRequest):
+    try:
+        from tools.pharmacy_tools import dispose_stock
+        result = dispose_stock(
+            medication_name=req.medication_name,
+            action=req.action,
+            quantity=req.quantity,
+            expiry_date=req.expiry_date,
         )
         return result
     except Exception as e:

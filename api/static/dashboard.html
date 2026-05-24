@@ -83,6 +83,16 @@
   .reorder-btn:hover:not(:disabled) { background: #fef2f2; }
   .reorder-btn:disabled { cursor: not-allowed; opacity: 0.7; }
   .reorder-btn.ordered { color: #1D9E75; }
+  .dispose-btn { background: none; border: 1.5px solid #e5e9f0; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: #d97706; padding: 4px 10px; border-radius: 6px; transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+  .dispose-btn:hover:not(:disabled) { background: #fffbeb; border-color: #d97706; }
+  .dispose-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  .dispose-btn.disposed { color: #6b7280; border-color: #e5e9f0; }
+  .dispose-action-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+  .dispose-action-opt { flex: 1; padding: 10px 12px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; color: #374151; display: flex; flex-direction: column; gap: 3px; transition: all 0.15s; text-align: left; }
+  .dispose-action-opt:hover { border-color: #d97706; color: #d97706; background: #fffbeb; }
+  .dispose-action-opt.selected { border-color: #d97706; color: #d97706; background: #fffbeb; }
+  .dispose-action-opt small { font-size: 11px; font-weight: 400; color: #9ca3af; }
+  .dispose-action-opt.selected small { color: #d97706; }
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
   .modal-overlay.show { display: flex; }
   .modal { background: #fff; border-radius: 14px; padding: 1.75rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.18); }
@@ -262,6 +272,45 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="dispose-modal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-trash"></i> Remove expiring stock</div>
+    <div class="modal-sub">Choose how to handle this item. The action will be logged to the audit trail.</div>
+    <div class="dispose-action-row">
+      <button class="dispose-action-opt selected" id="dispose-opt-dispose" onclick="selectDisposeAction('dispose')">
+        <span><i class="ti ti-trash" style="font-size:13px"></i> Mark as disposed</span>
+        <small>Waste bin — stock written off</small>
+      </button>
+      <button class="dispose-action-opt" id="dispose-opt-return" onclick="selectDisposeAction('return')">
+        <span><i class="ti ti-arrow-back-up" style="font-size:13px"></i> Return to supplier</span>
+        <small>Credit request raised</small>
+      </button>
+    </div>
+    <div class="modal-detail">
+      <div class="modal-detail-row">
+        <span class="modal-detail-label">Medication</span>
+        <span class="modal-detail-value" id="dispose-modal-med">—</span>
+      </div>
+      <div class="modal-detail-row">
+        <span class="modal-detail-label">Expiry date</span>
+        <span class="modal-detail-value" id="dispose-modal-expiry">—</span>
+      </div>
+      <div class="modal-detail-row">
+        <span class="modal-detail-label">Quantity</span>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="changeDisposeQty(-10)">−</button>
+          <input class="qty-input" type="number" id="dispose-qty-input" min="1" max="9999">
+          <button class="qty-btn" onclick="changeDisposeQty(+10)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeDisposeModal()">Cancel</button>
+      <button class="modal-confirm" id="dispose-confirm-btn" onclick="confirmDispose()"><i class="ti ti-check"></i> Confirm</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg">Order placed</span></div>
 
 <div class="main">
@@ -402,6 +451,8 @@ const BASE = 'https://web-production-1f27a.up.railway.app';
 
 const API_KEY = 'pharmagent-2026';
 const _orderedThisSession = new Set();
+const _disposedThisSession = new Set();
+window._expiringItems = [];
 function authHeaders(includeContentType = false) {
   const h = { 'X-API-Key': API_KEY };
   if (includeContentType) h['Content-Type'] = 'application/json';
@@ -461,7 +512,8 @@ async function loadTopbarAlert() {
       exp.forEach(i => {
         const name = i.medication || i.name || '—';
         const date = i.expiry_date || i.expires || '—';
-        tip += `<div class="alert-tip-row"><span>${name}</span><span style="color:#d97706;font-weight:600">${date}</span></div>`;
+        const disposed = _disposedThisSession.has(name);
+        tip += `<div class="alert-tip-row" style="${disposed ? 'opacity:0.45' : ''}"><span>${disposed ? '✓ ' : ''}${name}</span><span style="color:#d97706;font-weight:600">${date}</span></div>`;
       });
     }
     document.getElementById('alert-tooltip').innerHTML = tip || '<span style="color:#6b7280">No alerts</span>';
@@ -612,6 +664,86 @@ async function confirmReorder() {
   }
 }
 
+// ── Dispose modal ─────────────────────────────────────────────────────────────
+let pendingDispose = null;
+let _disposeAction = 'dispose';
+
+function selectDisposeAction(action) {
+  _disposeAction = action;
+  document.getElementById('dispose-opt-dispose').classList.toggle('selected', action === 'dispose');
+  document.getElementById('dispose-opt-return').classList.toggle('selected', action === 'return');
+}
+
+function changeDisposeQty(delta) {
+  const input = document.getElementById('dispose-qty-input');
+  input.value = Math.max(1, (parseInt(input.value) || 0) + delta);
+}
+
+function handleDisposeClick(idx) {
+  const item = window._expiringItems[idx];
+  _disposeAction = 'dispose';
+  selectDisposeAction('dispose');
+  pendingDispose = {
+    medication_name: getMedName(item),
+    expiry_date: getExpiryDate(item),
+    quantity: getMedQuantity(item) || 1,
+    btnEl: document.getElementById('dispose-btn-' + idx),
+  };
+  document.getElementById('dispose-modal-med').textContent = pendingDispose.medication_name;
+  document.getElementById('dispose-modal-expiry').textContent = pendingDispose.expiry_date;
+  document.getElementById('dispose-qty-input').value = pendingDispose.quantity;
+  document.getElementById('dispose-modal').classList.add('show');
+  setTimeout(() => document.getElementById('dispose-qty-input').select(), 50);
+}
+
+function closeDisposeModal() {
+  document.getElementById('dispose-modal').classList.remove('show');
+  const btn = document.getElementById('dispose-confirm-btn');
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-check"></i> Confirm';
+  pendingDispose = null;
+}
+
+document.getElementById('dispose-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDisposeModal();
+});
+
+async function confirmDispose() {
+  if (!pendingDispose) return;
+  const qty = parseInt(document.getElementById('dispose-qty-input').value);
+  if (!qty || qty < 1) { document.getElementById('dispose-qty-input').focus(); return; }
+  const confirmBtn = document.getElementById('dispose-confirm-btn');
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<span class="spinner"></span> Logging...';
+  try {
+    const res = await fetch(BASE + '/stock/dispose', {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        medication_name: pendingDispose.medication_name,
+        action: _disposeAction,
+        quantity: qty,
+        expiry_date: pendingDispose.expiry_date,
+      }),
+    });
+    const data = await res.json();
+    if (pendingDispose.btnEl) {
+      pendingDispose.btnEl.disabled = true;
+      pendingDispose.btnEl.classList.add('disposed');
+      pendingDispose.btnEl.innerHTML = '<i class="ti ti-circle-check" style="font-size:12px"></i> Removed';
+    }
+    _disposedThisSession.add(pendingDispose.medication_name);
+    closeDisposeModal();
+    const actionText = _disposeAction === 'return' ? 'Return logged' : 'Disposal logged';
+    showToast(actionText + ' — Ref: ' + (data.reference || 'confirmed'));
+    loadTopbarAlert();
+  } catch(e) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<i class="ti ti-check"></i> Confirm';
+    showToast('Failed to log action. Please try again.', true);
+  }
+}
+
 function showToast(msg, isError = false) {
   const toast = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = msg;
@@ -720,6 +852,7 @@ async function runStockReview() {
     const low = lowRes.low_stock || lowRes.items || [];
     const exp = expRes.expiring_stock || expRes.items || [];
     window._lowStockItems = low;
+    window._expiringItems = exp;
     const alertCount = low.length + exp.length;
     const alertEl = document.getElementById('topbar-alert');
     const alertText = document.getElementById('topbar-alert-text');
@@ -788,13 +921,18 @@ async function runStockReview() {
     }
     if (exp.length > 0) {
       html += '<div class="section-label" style="margin-top:16px">Expiring within 30 days</div>';
-      exp.forEach(item => {
+      exp.forEach((item, idx) => {
+        const name = getMedName(item);
+        const disposed = _disposedThisSession.has(name);
         html += `<div class="stock-row">
           <div>
-            <div class="stock-name">${getMedName(item)}</div>
+            <div class="stock-name" style="${disposed ? 'color:#9ca3af;text-decoration:line-through' : ''}">${name}</div>
             <div class="stock-detail">Expires: ${getExpiryDate(item)}</div>
           </div>
-          <span class="badge badge-moderate">Expiring</span>
+          ${disposed
+            ? '<span style="font-size:12px;color:#9ca3af;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-circle-check"></i> Removed</span>'
+            : `<button class="dispose-btn" id="dispose-btn-${idx}" onclick="handleDisposeClick(${idx})"><i class="ti ti-trash" style="font-size:12px"></i> Remove</button>`
+          }
         </div>`;
       });
     }

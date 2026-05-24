@@ -181,6 +181,26 @@ def place_reorder(medication_name: str, quantity: int, supplier: str) -> dict:
     }
 
 
+def dispose_stock(medication_name: str, action: str, quantity: int, expiry_date: str) -> dict:
+    """Log a stock disposal or supplier return for an expiring item."""
+    action_label = "STOCK_RETURNED" if action == "return" else "STOCK_DISPOSED"
+    action_text = "Returned to supplier" if action == "return" else "Disposed (expired/near-expiry)"
+    log_audit_event(
+        agent="StockIntelligenceAgent",
+        action=action_label,
+        details=f"{action_text}: {quantity} units of {medication_name} (expiry: {expiry_date})",
+    )
+    ref = f"DISP-{datetime.today().strftime('%Y%m%d')}-{abs(hash(medication_name)) % 9999:04d}"
+    return {
+        "status": "logged",
+        "medication": medication_name,
+        "action": action_text,
+        "quantity": quantity,
+        "expiry_date": expiry_date,
+        "reference": ref,
+    }
+
+
 # ── MESSAGING TOOLS ───────────────────────────────────────────────────────────
 
 def send_patient_message(patient_id: int, channel: str, message: str) -> dict:
