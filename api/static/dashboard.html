@@ -401,6 +401,7 @@
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
 const API_KEY = 'pharmagent-2026';
+const _orderedThisSession = new Set();
 function authHeaders(includeContentType = false) {
   const h = { 'X-API-Key': API_KEY };
   if (includeContentType) h['Content-Type'] = 'application/json';
@@ -447,7 +448,11 @@ async function loadTopbarAlert() {
       low.forEach(i => {
         const name = i.medication || i.name || '—';
         const qty = i.quantity ?? i.current_stock ?? '?';
-        tip += `<div class="alert-tip-row"><span>${name}</span><span style="color:#dc2626;font-weight:600">${qty} units</span></div>`;
+        const ordered = _orderedThisSession.has(name);
+        tip += `<div class="alert-tip-row" style="${ordered ? 'opacity:0.45' : ''}">
+          <span>${ordered ? '&#10003; ' : ''}${name}</span>
+          <span style="color:${ordered ? '#6b7280' : '#dc2626'};font-weight:600">${ordered ? 'ordered' : qty + ' units'}</span>
+        </div>`;
       });
     }
     if (exp.length > 0) {
@@ -596,6 +601,7 @@ async function confirmReorder() {
       pendingReorder.btnEl.classList.add('ordered');
       pendingReorder.btnEl.innerHTML = '<i class="ti ti-circle-check" style="font-size:12px"></i> Ordered';
     }
+    _orderedThisSession.add(pendingReorder.medication_name);
     closeModal();
     showToast('Order placed (' + qty + ' units) — Ref: ' + (data.reference || 'confirmed'));
     loadTopbarAlert();
