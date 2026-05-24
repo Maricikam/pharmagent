@@ -485,6 +485,45 @@ def emergency_supply_get(request: Request, medication: str, quantity: int, reaso
     return emergency_supply(request, req)
 
 
+@app.get("/agents/analytics/prioritize-patients", tags=["Analytics"], dependencies=[Depends(require_api_key)])
+@limiter.limit("10/minute")
+def api_prioritize_patients(request: Request):
+    """Score and rank all patients by clinical urgency (overdue, adherence risk, polypharmacy)."""
+    if not _has_api_key():
+        return {"mode": "demo", "note": "Analytics agent requires a live API key."}
+    try:
+        from agents.analytics_agent import prioritize_patients
+        return {"mode": "live", "result": prioritize_patients()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/agents/analytics/anomalies", tags=["Analytics"], dependencies=[Depends(require_api_key)])
+@limiter.limit("10/minute")
+def api_detect_anomalies(request: Request):
+    """Detect unusual patterns across stock, prescriptions, and patient behaviour."""
+    if not _has_api_key():
+        return {"mode": "demo", "note": "Analytics agent requires a live API key."}
+    try:
+        from agents.analytics_agent import detect_anomalies
+        return {"mode": "live", "result": detect_anomalies()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/agents/analytics/workflow", tags=["Analytics"], dependencies=[Depends(require_api_key)])
+@limiter.limit("10/minute")
+def api_workflow_optimization(request: Request):
+    """AI-driven workflow optimization recommendations based on pharmacy state and audit history."""
+    if not _has_api_key():
+        return {"mode": "demo", "note": "Analytics agent requires a live API key."}
+    try:
+        from agents.analytics_agent import get_workflow_optimization
+        return {"mode": "live", "result": get_workflow_optimization()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/agents/orchestrate", tags=["Agents"], dependencies=[Depends(require_api_key)])
 @limiter.limit("30/minute")
 def orchestrate(request: Request, req: OrchestrateRequest):

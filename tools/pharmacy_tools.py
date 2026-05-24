@@ -238,3 +238,124 @@ def get_recent_audit_logs(limit: int = 20) -> list[dict]:
                  "action": l.action, "details": l.details} for l in logs]
     finally:
         db.close()
+
+
+# ── ANALYTICS TOOLS ───────────────────────────────────────────────────────────
+
+def get_prescription_demand() -> list[dict]:
+    """Count active prescriptions per medication — proxy for daily demand and days of supply."""
+    db = _db()
+    try:
+        from db.models import Medication
+        meds = db.query(Medication).all()
+        result = []
+        for med in meds:
+            count = (db.query(Prescription)
+                     .filter(Prescription.medication_id == med.id, Prescription.active == True)
+                     .count())
+            if count == 0:
+                continue
+            stock = db.query(StockItem).filter(StockItem.medication_id == med.id).first()
+            current_stock = stock.quantity if stock else None
+            reorder_threshold = stock.reorder_threshold if stock else None
+            days_of_supply = round(current_stock / count, 1) if current_stock is not None else None
+            result.append({
+                "medication_id": med.id,
+                "medication": med.name,
+                "active_prescriptions": count,
+                "estimated_monthly_units": count * 30,
+                "current_stock": current_stock,
+                "reorder_threshold": reorder_threshold,
+                "days_of_supply": days_of_supply,
+                "smart_reorder_quantity": count * 60,  # 2-month buffer
+            })
+        return sorted(result, key=lambda x: (x.get("days_of_supply") or 9999))
+    finally:
+        db.close()
+
+
+def get_overdue_patients() -> list[dict]:
+    """Return patients with active prescriptions past their next_due_date."""
+    db = _db()
+    try:
+        today = datetime.today()
+        today_str = today.strftime("%Y-%m-%d")
+        rxs = (db.query(Prescription)
+               .filter(Prescription.active == True,
+                       Prescription.next_due_date < today_str)
+               .all())
+        seen = set()
+        result = []
+        for rx in rxs:
+            if rx.patient_id in seen:
+                continue
+            seen.add(rx.patient_id)
+            try:
+                due = datetime.strptime(rx.next_due_date, "%Y-%m-%d")
+                days_overdue = (today - due).days
+            except Exception:
+                days_overdue = 0
+            result.append({
+                "patient_id": rx.patient_id,
+                "nhs_number": rx.patient.nhs_number,
+                "name": f"{rx.patient.first_name} {rx.patient.last_name}",
+                "phone": rx.patient.phone,
+                "next_due_date": rx.next_due_date,
+                "days_overdue": days_overdue,
+                "medication": rx.medication.name,
+            })
+        return sorted(result, key=lambda x: x["days_overdue"], reverse=True)
+    finally:
+        db.close()
+
+
+def get_anomaly_signals() -> dict:
+    """Detect unusual patterns across stock, prescriptions, and audit logs."""
+    db = _db()
+    try:
+        from sqlalchemy import func
+        seven_days_ago = (datetime.today() - timedelta(days=7)).isoformat()
+
+        overdue = get_overdue_patients()
+
+        polypharmacy_rows = (
+            db.query(Prescription.patient_id, func.count(Prescription.id).label("cnt"))
+            .filter(Prescription.active == True)
+            .group_by(Prescription.patient_id)
+            .having(func.count(Prescription.id) >= 5)
+            .all()
+        )
+        polypharmacy_patients = []
+        for pid, cnt in polypharmacy_rows:
+            p = db.query(Patient).filter(Patient.id == pid).first()
+            if p:
+                polypharmacy_patients.append({
+                    "patient_id": pid,
+                    "name": f"{p.first_name} {p.last_name}",
+                    "nhs_number": p.nhs_number,
+                    "active_prescriptions": cnt,
+                })
+
+        recent_emergency = (
+            db.query(AuditLog)
+            .filter(AuditLog.action == "EMERGENCY_SUPPLY",
+                    AuditLog.timestamp >= seven_days_ago)
+            .count()
+        )
+
+        demand = get_prescription_demand()
+        shortage_risk = [
+            d for d in demand
+            if d.get("days_of_supply") is not None and d["days_of_supply"] < 14
+        ]
+
+        return {
+            "overdue_patients": len(overdue),
+            "overdue_details": overdue[:5],
+            "polypharmacy_patients": len(polypharmacy_patients),
+            "polypharmacy_details": polypharmacy_patients,
+            "recent_emergency_supplies": recent_emergency,
+            "shortage_risk_items": shortage_risk,
+        }
+    finally:
+        db.close()

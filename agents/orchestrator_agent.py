@@ -42,6 +42,7 @@ from agents.stock_intelligence_agent import run_stock_review
 from agents.patient_engagement_agent import run_engagement_campaign
 from agents.handover_agent import generate_handover
 from agents.emergency_supply_agent import process_emergency_supply
+from agents.analytics_agent import prioritize_patients, detect_anomalies
 from tools.pharmacy_tools import log_audit_event, get_patient_by_name, get_patient_by_nhs, get_active_prescriptions
 from config import MODEL
 MAX_TURNS = 5
@@ -129,6 +130,25 @@ TOOLS = [
         },
     },
     {
+        "name": "prioritize_patients",
+        "description": (
+            "Score and rank all patients by clinical urgency. Returns a sorted list with URGENT, HIGH, "
+            "and ROUTINE priority levels based on overdue collections, adherence risk, and polypharmacy. "
+            "Use when asked who needs attention today, patient prioritization, or who is most at risk."
+        ),
+        "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
+        "name": "detect_anomalies",
+        "description": (
+            "Detect unusual patterns across stock, prescriptions, and patient behaviour. "
+            "Identifies overdue collections, polypharmacy risks, emergency supply spikes, "
+            "and predicted stock shortages. Use when asked about anomalies, unusual patterns, "
+            "or anything that needs investigating."
+        ),
+        "input_schema": {"type": "object", "properties": {}, "required": []},
+    },
+    {
         "name": "run_patient_engagement",
         "description": (
             "Contact patients with personalised messages. Supports multiple campaign types: "
@@ -183,10 +203,12 @@ Available tools:
 - lookup_patient: resolve a patient name to a CHI number — always use this first if no CHI is provided
 - get_patient_profile: return a patient's full active medication list
 - check_drug_interactions: patient-specific medication safety check (requires CHI number)
-- run_stock_review: inventory management, low stock, expiry, reorders
+- run_stock_review: inventory management, low stock, expiry, predicted shortages, smart reorders
 - run_patient_engagement: patient refill reminders and outreach campaigns
 - generate_handover: shift handover note for the incoming pharmacist
 - process_emergency_supply: emergency medication supply with legal record and interaction check
+- prioritize_patients: rank all patients by urgency (URGENT/HIGH/ROUTINE) — overdue collections, adherence risk, polypharmacy
+- detect_anomalies: find unusual patterns — overdue patients, shortage risks, emergency supply spikes, polypharmacy flags
 
 If the pharmacist refers to a patient by name only, call lookup_patient first to get the CHI number, then proceed. If lookup returns multiple matches, list them and ask the pharmacist to clarify.
 
@@ -297,6 +319,16 @@ def run_orchestrator(pharmacist_request: str) -> str:
                 if stock["orders_placed"]:
                     result += f"\n\nAuto-orders placed: {len(stock['orders_placed'])} reorders triggered."
                 agent_results["stock_review"] = result
+
+            elif tool_name == "prioritize_patients":
+                prio = prioritize_patients()
+                result = prio["report"]
+                agent_results["patient_prioritization"] = result
+
+            elif tool_name == "detect_anomalies":
+                anomalies = detect_anomalies()
+                result = anomalies["report"]
+                agent_results["anomaly_detection"] = result
 
             elif tool_name == "run_patient_engagement":
                 days = tool_input.get("days_ahead", 7)
