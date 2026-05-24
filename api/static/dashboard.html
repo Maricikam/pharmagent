@@ -358,6 +358,7 @@
     <button class="nav-btn" onclick="showTab('patient', this)" title="Look up a patient's full active medication profile by CHI number or name."><i class="ti ti-user"></i> Patient lookup</button>
     <button class="nav-btn" onclick="showTab('engagement', this)" title="Generate personalised SMS or email reminders for patients due for refills. Patients scored by adherence risk — high-risk patients contacted first."><i class="ti ti-mail"></i> Engagement</button>
     <button class="nav-btn" onclick="showTab('audit', this); loadAuditLog()" title="Full audit trail of all agent actions — interaction checks, reorders, messages sent, emergency supplies. Required for NHS regulatory compliance."><i class="ti ti-clipboard-list"></i> Audit log</button>
+    <button class="nav-btn" onclick="showTab('analytics', this)" title="AI-powered insights: patient prioritisation by clinical urgency, anomaly detection across stock and patient behaviour, and workflow optimisation recommendations."><i class="ti ti-chart-bar"></i> Analytics</button>
   </nav>
 
   <div id="interaction" class="section active">
@@ -444,6 +445,25 @@
       </button>
     </div>
     <div class="result-box" id="eng-result"></div>
+  </div>
+
+  <div id="analytics" class="section">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar"></i> Analytics</div>
+      <p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:1.25rem">Predictive insights powered by the Analytics Agent. Requires Live AI mode.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="anl-priority-btn" onclick="runAnalytics('prioritize')">
+          <i class="ti ti-users"></i> Patient prioritisation
+        </button>
+        <button class="btn btn-primary" id="anl-anomaly-btn" onclick="runAnalytics('anomalies')" style="background:#d97706;margin-top:0">
+          <i class="ti ti-alert-triangle"></i> Anomaly detection
+        </button>
+        <button class="btn btn-primary" id="anl-workflow-btn" onclick="runAnalytics('workflow')" style="background:#6366f1;margin-top:0">
+          <i class="ti ti-route"></i> Workflow optimisation
+        </button>
+      </div>
+    </div>
+    <div class="result-box" id="anl-result"></div>
   </div>
 </div>
 
@@ -1172,6 +1192,66 @@ function engSend(idx) {
   btn.disabled = true;
 }
 
+
+async function runAnalytics(type) {
+  const cfg = {
+    prioritize: { url: '/agents/analytics/prioritize-patients', btnId: 'anl-priority-btn', orig: '<i class="ti ti-users"></i> Patient prioritisation' },
+    anomalies:  { url: '/agents/analytics/anomalies',           btnId: 'anl-anomaly-btn',   orig: '<i class="ti ti-alert-triangle"></i> Anomaly detection' },
+    workflow:   { url: '/agents/analytics/workflow',            btnId: 'anl-workflow-btn',  orig: '<i class="ti ti-route"></i> Workflow optimisation' },
+  };
+  const ep = cfg[type];
+  const box = document.getElementById('anl-result');
+  const btn = document.getElementById(ep.btnId);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analysing…';
+  box.classList.add('show');
+  box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Running analytics agent…</p>';
+  try {
+    const data = await fetch(BASE + ep.url, { headers: authHeaders() }).then(r => r.json());
+    if (data.mode === 'demo') {
+      box.innerHTML = `<div class="empty-state"><i class="ti ti-lock"></i><p style="margin-top:6px">Analytics requires Live AI mode — add an API key to enable.</p></div>`;
+      btn.disabled = false; btn.innerHTML = ep.orig; return;
+    }
+    const result = data.result || {};
+    let html = '';
+
+    if (type === 'prioritize' && result.patients) {
+      html += `<div class="stat-grid">
+        <div class="stat"><div class="stat-label">Urgent</div><div class="stat-value danger">${result.urgent_count}</div></div>
+        <div class="stat"><div class="stat-label">High risk</div><div class="stat-value warning">${result.high_count}</div></div>
+        <div class="stat"><div class="stat-label">Routine</div><div class="stat-value good">${result.routine_count}</div></div>
+      </div>`;
+    } else if (type === 'anomalies' && result.signals) {
+      const s = result.signals;
+      html += `<div class="stat-grid">
+        <div class="stat"><div class="stat-label">Overdue collections</div><div class="stat-value ${s.overdue_patients > 0 ? 'danger' : 'good'}">${s.overdue_patients}</div></div>
+        <div class="stat"><div class="stat-label">Polypharmacy patients</div><div class="stat-value ${s.polypharmacy_patients > 0 ? 'warning' : 'good'}">${s.polypharmacy_patients}</div></div>
+        <div class="stat"><div class="stat-label">Emergency supplies (7d)</div><div class="stat-value ${s.recent_emergency_supplies > 0 ? 'warning' : 'good'}">${s.recent_emergency_supplies}</div></div>
+        <div class="stat"><div class="stat-label">Shortage risk items</div><div class="stat-value ${(s.shortage_risk_items||[]).length > 0 ? 'warning' : 'good'}">${(s.shortage_risk_items||[]).length}</div></div>
+      </div>`;
+    } else if (type === 'workflow' && result.action_counts) {
+      const top = Object.entries(result.action_counts).sort((a,b) => b[1]-a[1]).slice(0,3);
+      if (top.length) {
+        html += `<div class="section-label">Top audit actions (last 50 events)</div>
+        <div class="stat-grid">`;
+        top.forEach(([action, count]) => {
+          html += `<div class="stat"><div class="stat-label">${action.replace(/_/g,' ')}</div><div class="stat-value" style="font-size:20px">${count}</div></div>`;
+        });
+        html += `</div>`;
+      }
+    }
+
+    if (result.report) {
+      html += `<div class="card-title" style="margin-top:0.5rem"><i class="ti ti-sparkles" style="color:#1D9E75"></i> AI analysis</div>
+               <div class="msg-box">${renderClinicalText(result.report)}</div>`;
+    }
+    box.innerHTML = html || '<p style="color:#6b7280">No data returned.</p>';
+  } catch(e) {
+    box.innerHTML = `<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> ${e.message || 'Error running analytics.'}</p>`;
+  }
+  btn.disabled = false;
+  btn.innerHTML = ep.orig;
+}
 </script>
 </body>
 </html>

@@ -31,6 +31,13 @@
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
           "PHARMAGENT_API_KEY": "your-api-key-here"
         }
+      },
+      "pharmagent-analytics": {
+        "enabled": true,
+        "env": {
+          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_KEY": "your-api-key-here"
+        }
       }
     }
   },
