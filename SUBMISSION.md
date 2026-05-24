@@ -10,13 +10,26 @@ These are not hypothetical problems. Adverse drug reactions from missed interact
 
 PharmAgent AI is a multi-agent system that gives a pharmacist a clinical co-pilot — accessible from WhatsApp, Telegram, or a web dashboard — powered by Claude AI and integrated into their workflow via OpenClaw.
 
-Three specialist AI agents handle distinct domains:
+Seven specialist agents handle distinct domains, coordinated by an Orchestrator that accepts plain English and decides which agents to invoke.
 
-- **Interaction Safety Agent** — cross-references a patient's active prescriptions against a new medication before dispensing. Risk ratings are anchored to 80 validated drug pairs from DrugBank 6.0 and Micromedex: the AI cannot downgrade a HIGH interaction to MODERATE. When a known pair is detected, the full clinical management guidance — safer alternatives, monitoring steps — is injected directly into the prompt.
-- **Stock Intelligence Agent** — reviews inventory levels, flags near-expiry medications, calculates waste cost, and triggers supplier reorders automatically.
-- **Patient Engagement Agent** — generates personalised SMS/email refill reminders for patients due within a configurable window. Patients are scored for adherence risk using population statistics derived from a 5,000-record dataset; high-risk patients (elderly, complex regimens, mental health medications) are prioritised and receive more supportive messaging.
+## Agents
 
-An Orchestrator Agent sits above all three, accepting plain English from the pharmacist and coordinating whichever agents are needed — so "Good morning, run the daily check" triggers a full stock review and patient outreach in a single message.
+**Orchestrator Agent** — the single entry point for all natural language requests. Resolves patient names to CHI numbers automatically, coordinates sub-agents in sequence, and synthesises all outputs into a unified NHS-format clinical report.
+
+**Interaction Safety Agent** — cross-references a patient's active prescriptions against a new medication before dispensing. Risk ratings are anchored to 80 validated drug pairs from DrugBank 6.0 and Micromedex: Claude cannot downgrade a HIGH interaction to MODERATE. When a known pair is detected, the full clinical management record — safer alternatives, monitoring steps, mechanism of action — is injected directly into the prompt. Returns structured data (severity, mechanism, safer alternative, evidence source per interaction) rather than raw text.
+
+**Stock Intelligence Agent** — reviews inventory levels, flags near-expiry medications, calculates waste cost, and triggers supplier reorders automatically. Predicts future shortages by calculating days of supply from active prescription demand — flags medications that will run out within 30 days even if currently above the reorder threshold. Auto-reorders use a smart quantity (2-month demand buffer) rather than a fixed number.
+
+**Patient Engagement Agent** — generates personalised SMS/email refill reminders for patients due within a configurable window. Patients are scored for adherence risk using population statistics derived from a 5,000-record dataset; high-risk patients (elderly, complex regimens, mental health medications) are prioritised and receive more supportive messaging. The `adherence_check` campaign type specifically targets overdue patients who have not collected — connecting anomaly detection to clinical action.
+
+**Handover Agent** — generates a structured NHS shift handover note covering the last 12 hours of audit activity, stock alerts, patients due for urgent refill within 3 days, and any HIGH-risk interaction flags from the shift. Designed for end-of-shift use.
+
+**Emergency Supply Agent** — processes emergency medication supply requests when a patient has run out and cannot reach their GP. Resolves the patient by CHI or name, runs an interaction check on the supplied medication, and generates a legally formatted NHS Scotland supply record including the 72-hour prescriber notification requirement and 2-year record retention reminder.
+
+**Analytics Agent** — three predictive capabilities:
+- *Patient prioritisation*: scores every patient by urgency (overdue days × 3 + adherence risk + number of medications) and returns a sorted URGENT / HIGH / ROUTINE list for the pharmacist.
+- *Anomaly detection*: identifies overdue collections, polypharmacy patients (5+ active medications), emergency supply frequency spikes, and medications with fewer than 14 days of stock at current demand.
+- *Workflow optimisation*: analyses audit history and prescription demand patterns to generate concrete improvement recommendations with IMMEDIATE / THIS WEEK / NEXT MONTH timeframes.
 
 ## Technical architecture
 
@@ -29,23 +42,26 @@ WhatsApp / Dashboard
         ▼
   FastAPI Backend (Railway)
         │
-   ┌────┴───────────────────────────┐
-   │                                │
-   ▼                                ▼
-Tool Layer (deterministic)     Agent Layer (Claude Haiku)
-- DB queries                   - OrchestratorAgent (agentic loop)
-- Stock checks                 - InteractionSafetyAgent
-- Audit logging                - StockIntelligenceAgent
-- Message dispatch             - PatientEngagementAgent
+   ┌────┴──────────────────────────────┐
+   │                                   │
+   ▼                                   ▼
+Tool Layer (deterministic)        Agent Layer (Claude)
+- DB queries                      - OrchestratorAgent
+- Stock checks                    - InteractionSafetyAgent
+- Demand forecasting              - StockIntelligenceAgent
+- Audit logging                   - PatientEngagementAgent
+- Message dispatch                - HandoverAgent
+- Anomaly signals                 - EmergencySupplyAgent
+                                  - AnalyticsAgent
 ```
 
-The tool/agent separation is intentional. Every database query, reorder, and message is handled by deterministic Python functions — auditable, testable, and replaceable. Claude only touches the reasoning layer: interpreting intent, weighing clinical risk, and generating human-readable output.
+The tool/agent separation is intentional. Every database query, reorder, and message dispatch is handled by deterministic Python functions — auditable, testable, and replaceable without touching the AI layer. Claude only handles reasoning: interpreting intent, weighing clinical risk, generating human-readable output.
 
 ## Real clinical datasets
 
 Two validated datasets are integrated directly into the agent layer:
 
-**Drug-Drug Interaction database** (`data/Interaction Safety Agent.json`) — 80 records sourced from DrugBank 6.0, Micromedex Solutions, and FDA Drug Safety Communications. Loaded at startup into the Interaction Safety Agent. Each record includes severity (Major/Moderate/Minor), mechanism of action, clinical effect, safer alternative, and specific clinical management steps. When a patient's medication list matches a known pair, the full management record — not just a severity label — is injected into the Claude prompt, so recommendations cite evidence-based guidance rather than generic advice.
+**Drug-Drug Interaction database** (`data/Interaction Safety Agent.json`) — 80 records sourced from DrugBank 6.0, Micromedex Solutions, and FDA Drug Safety Communications. Loaded at startup into the Interaction Safety Agent. Each record includes severity (Major/Moderate/Minor), mechanism of action, clinical effect, safer alternative, and specific clinical management steps. When a patient's medication list matches a known pair, the full management record is injected into the Claude prompt, so recommendations cite evidence-based guidance rather than generic advice. DDI matching uses both brand name and generic name to avoid false negatives.
 
 **Patient Adherence dataset** (`data/patient_adherence_dataset.csv`) — 5,000 records with 14 demographic and clinical features. Non-adherence rates by age band derived from this data: 52% for under-45s rising to 61% for 75+, with an 11 percentage point uplift for patients on mental health medications. These statistics are used by the Patient Engagement Agent to score every patient's adherence risk (HIGH / MEDIUM / LOW) before each campaign run. High-risk patients are sorted to the front of the outreach queue and receive warmer, more supportive messages tailored to their risk profile.
 
@@ -53,22 +69,26 @@ Both datasets are excluded from the repository (`.gitignore`) and loaded at runt
 
 ## Key safety decisions
 
-1. **Deterministic interaction rules** — 80 clinically validated drug pairs (DrugBank 6.0 / Micromedex) with fixed severity levels injected into every interaction check. Claude reasons around them; it cannot override them.
+1. **Deterministic interaction rules** — 80 clinically validated drug pairs with fixed severity levels injected into every interaction check. Claude reasons around them; it cannot override them.
 2. **Human-in-the-loop** — every agent recommendation requires pharmacist sign-off before clinical action is taken. The system advises; it does not dispense.
-3. **Full audit trail** — every agent action is logged to a timestamped `AuditLog` table with agent identity and patient reference. Designed for NHS Scotland regulatory compliance.
+3. **Full audit trail** — every agent action is logged to a timestamped `AuditLog` table with agent identity and patient reference, satisfying NHS Scotland regulatory requirements.
 4. **CHI number validation** — Scottish CHI numbers are validated against the Modulus 11 algorithm before any patient query reaches the database.
 5. **Data residency** — designed for deployment within DataVita's Scottish data centres, keeping patient data within Scotland per NHS Scotland GDPR requirements.
+6. **API key protection** — all endpoints except `/health` and `/demo` require an `X-API-Key` header, enforced server-side. The dashboard sends the key automatically — judges do not need to enter anything.
 
 ## OpenClaw integration
 
-Four skills connect PharmAgent to any chat app via OpenClaw:
+Seven skills connect PharmAgent to any chat app via OpenClaw:
 
 | Skill | Trigger |
 |---|---|
 | `pharmagent-daily-briefing` | "Run the daily pharmacy check" |
 | `pharmagent-interaction-check` | "Check CHI 1203480016 for Ibuprofen" |
+| `pharmagent-patient-profile` | "What is Margaret Campbell on?" |
+| `pharmagent-handover` | "Generate handover notes" |
+| `pharmagent-emergency-supply` | "Emergency supply for Robertson — he's run out of Warfarin" |
 | `pharmagent-stock-review` | "What's running low?" |
-| `pharmagent-patient-engagement` | "Send refill reminders this week" |
+| `pharmagent-engagement-campaign` | "Send refill reminders this week" |
 
 The daily briefing skill can be scheduled as a cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
 
@@ -78,12 +98,12 @@ The daily briefing skill can be scheduled as a cron task in OpenClaw, delivering
 
 The web dashboard demonstrates the full system in one place:
 
-- **Daily Briefing card** — single button triggers all three agents via the Orchestrator and returns a unified NHS-style clinical report. Downloadable as PDF.
-- **Drug Interaction Checker** — patient CHI + new medication → structured risk report with severity, mechanism, and dispensing recommendation. Quick-fill demo chips for instant testing.
-- **Stock Review** — AI analysis with low-stock and expiry alerts, inline reorder buttons.
-- **Patient Lookup** — full medication profile by CHI number.
-- **Patient Engagement** — personalised SMS/email reminder campaigns by type (refill, seasonal, flu vaccination, etc.).
-- **Audit Log** — live table of all agent actions, satisfying NFR-04 visibility. Every interaction check, stock review, and patient message is logged with timestamp, agent identity, and detail.
+- **Daily Briefing** — single button triggers all agents via the Orchestrator and returns a unified NHS-style clinical report. Downloadable as PDF.
+- **Drug Interaction Checker** — CHI + new medication → structured risk report with severity, mechanism, safer alternative, and evidence source per detected interaction. Quick-fill demo chips for instant testing.
+- **Stock Review** — AI highlights (critical stock, predicted shortages, auto-orders placed, £ expiry waste) followed by the full reorder and expiry lists with inline reorder buttons.
+- **Patient Lookup** — full medication profile by CHI number or patient name.
+- **Patient Engagement** — personalised SMS/email campaigns across 9 types. Overdue patient outreach (adherence check) pulls directly from the anomaly detection pipeline.
+- **Audit Log** — live table of all agent actions with timestamp, agent identity, and detail.
 
 ## Live demo
 
@@ -93,7 +113,7 @@ The web dashboard demonstrates the full system in one place:
 | **API docs** | https://web-production-1f27a.up.railway.app/docs |
 | **Health** | https://web-production-1f27a.up.railway.app/health |
 
-All 10 demo patients are seeded. Quick-fill buttons in the dashboard auto-populate the forms — no CHI number memorisation needed. Full list:
+All 10 demo patients are seeded. Quick-fill buttons in the dashboard auto-populate the forms — no CHI number memorisation needed.
 
 | CHI | Patient | Try checking against |
 |---|---|---|

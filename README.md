@@ -2,18 +2,18 @@
 
 **Intelligent pharmacy management powered by Claude AI and OpenClaw — built for the DataVita OpenClaw Challenge.**
 
-PharmAgent AI is a multi-agent system that helps pharmacists check drug interactions, manage stock, and engage patients — all from a web dashboard or directly over WhatsApp via OpenClaw.
+PharmAgent AI is a multi-agent system that helps pharmacists check drug interactions, manage stock, engage patients, and detect clinical anomalies — all from a web dashboard or directly over WhatsApp via OpenClaw.
 
 ### Dashboard features
 
 | Feature | Description |
 |---|---|
-| **Daily Briefing** | One-click orchestrated workflow — runs all three agents and returns a unified clinical report. Downloadable as PDF. |
-| **Drug Interaction Checker** | Check any patient's active medications against a new prescription. Quick-fill demo chips included. |
-| **Stock Review** | AI-powered stock health summary with reorder buttons. |
-| **Patient Lookup** | Retrieve a patient's full medication profile by CHI number. |
-| **Patient Engagement** | Generate and preview personalised SMS/email refill reminders. |
-| **Audit Log** | Live view of all agent actions logged for regulatory compliance (NFR-04). |
+| **Daily Briefing** | One-click orchestrated workflow — runs all agents and returns a unified NHS clinical report. Downloadable as PDF. |
+| **Drug Interaction Checker** | Check any patient's active medications against a new prescription. Returns structured results: severity, mechanism, safer alternative, evidence source. Quick-fill demo chips included. |
+| **Stock Review** | AI highlights (critical items, predicted shortages, auto-orders placed, expiry waste value) with inline reorder buttons. |
+| **Patient Lookup** | Full medication profile by CHI number or patient name. |
+| **Patient Engagement** | Personalised SMS/email campaigns — 9 types including refill reminders, adherence check (overdue patients), flu vaccination, seasonal campaigns. |
+| **Audit Log** | Live view of all agent actions logged for regulatory compliance. |
 
 ---
 
@@ -27,29 +27,31 @@ PharmAgent AI is a multi-agent system that helps pharmacists check drug interact
 
 ### WhatsApp demo (via OpenClaw)
 
-The system is connected to WhatsApp via OpenClaw. Example conversations:
-
 > *"Check patient 1203480016 for Ibuprofen"*
-> → **CONTRAINDICATED** — Warfarin + Ibuprofen: major bleeding risk. DO NOT prescribe. Alternative: paracetamol.
+> → **HIGH** — Warfarin + Ibuprofen: major bleeding risk. DO NOT dispense. Safer alternative: paracetamol.
 
 > *"What's running low on stock?"*
-> → Critical: Ramipril 5mg (8 units), Aspirin 75mg (18 units), Amoxicillin 500mg (12 units) — with reorder recommendations.
+> → Critical: Ramipril 5mg (8 units, 8 days supply). 3 medications predicted to run short within 30 days.
 
 > *"Send refill reminders to patients due this week"*
-> → 13 prescriptions due — 6 patients contacted with personalised SMS messages.
+> → 6 patients contacted — HIGH-risk patients prioritised, sent warmer supportive messages.
+
+> *"Who needs attention today?"*
+> → Patient prioritisation: URGENT (overdue collections) → HIGH (adherence risk) → ROUTINE.
 
 ---
 
-## What it does
-
-PharmAgent AI runs three specialist AI agents, coordinated by an Orchestrator:
+## Agents
 
 | Agent | Responsibility |
 |---|---|
-| **Interaction Safety Agent** | Checks a patient's active prescriptions against a new medication. Anchors risk ratings to 80 validated drug pairs from DrugBank 6.0 / Micromedex — the AI cannot downgrade a HIGH rating. Full clinical management guidance (safer alternatives, monitoring steps) is injected into the prompt when a known pair is detected. |
-| **Stock Intelligence Agent** | Reviews inventory levels, flags near-expiry medications, calculates waste cost, and triggers supplier reorders. |
-| **Patient Engagement Agent** | Identifies patients due for refills and generates personalised SMS/email reminders. Patients are scored for adherence risk using population statistics from a 5,000-record dataset — high-risk patients are prioritised and receive more supportive messaging. |
-| **Orchestrator Agent** | Accepts plain-English intents and coordinates the sub-agents in sequence. |
+| **Orchestrator Agent** | Accepts plain-English intents, resolves patient names to CHI numbers, coordinates sub-agents in sequence, synthesises a unified NHS-format report. |
+| **Interaction Safety Agent** | Checks a patient's active prescriptions against a new medication. Risk ratings anchored to 80 validated DDI pairs from DrugBank 6.0 / Micromedex — Claude cannot downgrade a HIGH rating. Full clinical management guidance injected into the prompt when a known pair is detected. Returns structured results (not raw text): each interaction with severity, mechanism, safer alternative, evidence source. |
+| **Stock Intelligence Agent** | Reviews inventory, flags near-expiry stock, predicts shortages based on prescription demand (days of supply calculation), and triggers smart reorders using a 2-month demand buffer rather than a fixed quantity. |
+| **Patient Engagement Agent** | Identifies patients due for refills and generates personalised SMS/email messages. Patients scored for adherence risk using population statistics from a 5,000-record dataset — HIGH-risk patients prioritised and receive more supportive messaging. `adherence_check` campaign type specifically targets overdue patients. |
+| **Handover Agent** | Generates a structured NHS shift handover note — audit activity, stock alerts, patients due in 3 days, HIGH-risk interaction flags from the shift. |
+| **Emergency Supply Agent** | Processes emergency medication supply requests. Resolves patient, runs interaction check, generates a legally formatted NHS Scotland supply record with 72-hour prescriber notification requirement and 2-year retention reminder. |
+| **Analytics Agent** | Three capabilities: (1) patient prioritisation — urgency scores across the full patient list; (2) anomaly detection — overdue collections, polypharmacy flags, emergency supply spikes, 14-day stockout risks; (3) workflow optimisation — AI recommendations based on audit history and demand patterns. |
 
 ---
 
@@ -59,8 +61,8 @@ Two validated clinical datasets are integrated into the agent layer at runtime. 
 
 | Dataset | Records | Used by | Effect |
 |---|---|---|---|
-| `data/Interaction Safety Agent.json` | 80 DDI records | InteractionSafetyAgent | Replaces hardcoded rules table. Each record includes severity, mechanism, safer alternative, and clinical management steps from DrugBank 6.0, Micromedex, and FDA communications. Matching records are injected into the Claude prompt at runtime. |
-| `data/patient_adherence_dataset.csv` | 5,000 records | PatientEngagementAgent | Non-adherence rates by age band and comorbidity count are derived at startup (75+ band: 61%, vs 52% for under-45s). Each patient in an engagement campaign is scored HIGH / MEDIUM / LOW and sorted accordingly. |
+| `data/Interaction Safety Agent.json` | 80 DDI records | InteractionSafetyAgent | Each record includes severity, mechanism, safer alternative, and clinical management steps from DrugBank 6.0, Micromedex, and FDA communications. Matching records are injected into the Claude prompt at runtime. |
+| `data/patient_adherence_dataset.csv` | 5,000 records | PatientEngagementAgent | Non-adherence rates by age band and comorbidity count derived at startup (75+: 61%, under-45: 52%, +11pp for mental health medications). Used to score every patient HIGH / MEDIUM / LOW before each campaign. |
 
 To use locally, place the files in `data/` before running.
 
@@ -77,15 +79,17 @@ WhatsApp / Dashboard
         ▼
   FastAPI Backend (Railway)
         │
-   ┌────┴────────────────────────┐
-   │                             │
-   ▼                             ▼
-Tool Layer                  Agent Layer
-(deterministic)             (Claude Haiku)
-- DB queries                - InteractionSafetyAgent
-- Stock checks              - StockIntelligenceAgent
-- Audit logging             - PatientEngagementAgent
-- Message sending           - OrchestratorAgent
+   ┌────┴──────────────────────────────┐
+   │                                   │
+   ▼                                   ▼
+Tool Layer (deterministic)        Agent Layer (Claude)
+- DB queries                      - OrchestratorAgent
+- Stock checks                    - InteractionSafetyAgent
+- Audit logging                   - StockIntelligenceAgent
+- Message sending                 - PatientEngagementAgent
+- Demand forecasting              - HandoverAgent
+- Anomaly signals                 - EmergencySupplyAgent
+                                  - AnalyticsAgent
 ```
 
 All patient data is stored in the configured database. In production, this would be deployed within DataVita's Scottish data centres, satisfying NHS Scotland GDPR requirements.
@@ -94,16 +98,27 @@ All patient data is stored in the configured database. In production, this would
 
 ## OpenClaw integration
 
-Four OpenClaw skills are included in the `skills/` directory:
+Seven OpenClaw skills are included in the `skills/` directory:
 
 | Skill | Trigger |
 |---|---|
-| `pharmagent-interaction-check` | "Check patient [CHI] for [medication]" |
-| `pharmagent-stock-review` | "What's running low on stock?" |
-| `pharmagent-patient-engagement` | "Send refill reminders this week" |
 | `pharmagent-daily-briefing` | "Run the daily pharmacy check" |
+| `pharmagent-interaction-check` | "Check patient [CHI] for [medication]" |
+| `pharmagent-patient-profile` | "What is Margaret Campbell on?" |
+| `pharmagent-handover` | "Generate handover notes" |
+| `pharmagent-emergency-supply` | "Emergency supply for Robertson — he's run out of Warfarin" |
+| `pharmagent-stock-review` | "What's running low on stock?" |
+| `pharmagent-engagement-campaign` | "Send refill reminders this week" |
 
 See [OPENCLAW.md](OPENCLAW.md) for full setup instructions.
+
+---
+
+## Security
+
+API endpoints are protected by an `X-API-Key` header check. Set `API_KEY` as an environment variable on Railway to enable enforcement. The dashboard sends the key automatically on every request — judges and users do not need to enter anything.
+
+CHI numbers are validated against the Modulus 11 algorithm before any patient query reaches the database.
 
 ---
 
@@ -163,24 +178,49 @@ uvicorn api.main:app --reload
 
 ## API reference
 
+### System
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/health` | System status, AI mode |
-| `GET` | `/demo` | Full demo response (no API key needed) |
+| `GET` | `/demo` | Full demo response (no key needed) |
+
+### Patients & Stock
+| Method | Endpoint | Description |
+|---|---|---|
 | `GET` | `/patients/{chi}` | Patient lookup by CHI number |
 | `GET` | `/stock/low` | Medications below reorder threshold |
 | `GET` | `/stock/expiring` | Medications expiring within 30 days |
 | `POST` | `/stock/reorder` | Place a supplier reorder |
+
+### Agents
+| Method | Endpoint | Description |
+|---|---|---|
 | `POST` | `/agents/interaction-check` | Run Interaction Safety Agent |
 | `GET` | `/agents/interaction-check` | Same — GET version for OpenClaw |
-| `POST` | `/agents/stock-review` | Run Stock Intelligence Agent |
-| `GET` | `/agents/stock-review` | Same — GET version for OpenClaw |
+| `POST` | `/agents/stock-review` | Run Stock Intelligence Agent (with shortage prediction) |
+| `GET` | `/agents/stock-review` | Same — GET version |
 | `POST` | `/agents/engagement-campaign` | Run Patient Engagement Agent |
-| `GET` | `/agents/engagement-campaign` | Same — GET version for OpenClaw |
+| `GET` | `/agents/engagement-campaign` | Same — GET version |
+| `GET` | `/agents/patient-profile` | Full medication profile by CHI or name |
+| `GET` | `/agents/handover` | Generate shift handover note |
+| `POST` | `/agents/emergency-supply` | Process emergency supply with legal record |
+| `GET` | `/agents/emergency-supply` | Same — GET version for OpenClaw |
 | `POST` | `/agents/orchestrate` | Plain-English orchestration |
-| `GET` | `/audit/logs` | Recent audit trail entries (NFR-04) |
 
-All data endpoints require an `X-API-Key` header if `API_KEY` is set in the environment.
+### Analytics
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/agents/analytics/workload` | Prescriptions due per day for next 7 days |
+| `GET` | `/agents/analytics/prioritize-patients` | Urgency-scored patient list |
+| `GET` | `/agents/analytics/anomalies` | Anomaly detection report |
+| `GET` | `/agents/analytics/workflow` | Workflow optimisation recommendations |
+
+### Audit
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/audit/logs` | Recent audit trail entries |
+
+All endpoints except `/health` and `/demo` require `X-API-Key` header if `API_KEY` is set in the environment.
 
 ---
 
@@ -202,10 +242,13 @@ pytest tests/ -v
 ```
 pharmagent/
 ├── agents/
+│   ├── orchestrator_agent.py         # Multi-agent coordination
 │   ├── interaction_safety_agent.py   # Drug interaction checking
-│   ├── stock_intelligence_agent.py   # Inventory management
-│   ├── patient_engagement_agent.py   # Refill reminders
-│   └── orchestrator_agent.py         # Multi-agent coordination
+│   ├── stock_intelligence_agent.py   # Inventory management + shortage prediction
+│   ├── patient_engagement_agent.py   # Refill reminders + adherence risk scoring
+│   ├── handover_agent.py             # Shift handover generation
+│   ├── emergency_supply_agent.py     # NHS emergency supply records
+│   └── analytics_agent.py           # Prioritisation, anomalies, workflow optimisation
 ├── tools/
 │   └── pharmacy_tools.py             # Deterministic DB tools
 ├── db/
@@ -215,11 +258,14 @@ pharmagent/
 ├── api/
 │   ├── main.py                       # FastAPI application
 │   └── static/dashboard.html         # Web dashboard
-├── skills/                           # OpenClaw skill definitions
+├── skills/
+│   ├── pharmagent-daily-briefing/
 │   ├── pharmagent-interaction-check/
+│   ├── pharmagent-patient-profile/
+│   ├── pharmagent-handover/
+│   ├── pharmagent-emergency-supply/
 │   ├── pharmagent-stock-review/
-│   ├── pharmagent-patient-engagement/
-│   └── pharmagent-daily-briefing/
+│   └── pharmagent-engagement-campaign/
 ├── data/                             # Clinical datasets (gitignored)
 │   ├── Interaction Safety Agent.json # 80 DDI records (DrugBank 6.0 / Micromedex)
 │   └── patient_adherence_dataset.csv # 5,000-record adherence study
@@ -227,7 +273,7 @@ pharmagent/
 ├── scripts/
 │   └── seed.py                       # Demo data seeder
 ├── run_demo.py                        # CLI demo runner
-├── openclaw.json                      # OpenClaw config template
+├── openclaw.json                      # OpenClaw config
 └── requirements.txt
 ```
 
@@ -235,11 +281,11 @@ pharmagent/
 
 ## Deployment
 
-Deployed on [Railway](https://railway.app) free tier. Uses PostgreSQL on Railway in production, SQLite locally.
+Deployed on [Railway](https://railway.app). Uses PostgreSQL on Railway in production, SQLite locally.
 
 Environment variables required:
 ```
 ANTHROPIC_API_KEY=   # Claude API key
-DATABASE_URL=        # PostgreSQL URL (Railway provides this)
+DATABASE_URL=        # PostgreSQL URL (Railway provides this automatically)
 API_KEY=             # Access key for protected endpoints
 ```
