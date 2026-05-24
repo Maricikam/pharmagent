@@ -691,10 +691,41 @@ async function runStockReview() {
       <div class="stat"><div class="stat-label">Expiring soon</div><div class="stat-value ${exp.length > 0 ? 'warning' : 'good'}">${exp.length}</div></div>
     </div>`;
 
-    const analysis = agentRes?.result?.analysis || agentRes?.result?.message;
-    if (analysis) {
-      html += `<div class="card-title" style="margin-top:0.5rem"><i class="ti ti-sparkles" style="color:#1D9E75"></i> AI analysis</div>
-        <div class="clinical-box" style="margin-bottom:1rem;background:#f9fafb;border:1px solid #e5e9f0;color:#1a1a2e">${renderClinicalText(analysis)}</div>`;
+    // Build compact highlights from structured data — skip the full raw text
+    const orders = agentRes?.result?.orders_placed || [];
+    const predicted = agentRes?.result?.predicted_shortage_count || 0;
+    const highlights = [];
+
+    low.filter(item => (item.quantity ?? item.current_stock ?? 0) < 20).forEach(item => {
+      highlights.push({type:'urgent', text:`${getMedName(item)} — ${getMedQuantity(item)} units remaining`});
+    });
+    if (predicted > 0)
+      highlights.push({type:'warning', text:`${predicted} medication${predicted !== 1 ? 's' : ''} predicted to run short within 30 days`});
+    if (orders.length > 0)
+      highlights.push({type:'good', text:`${orders.length} auto-order${orders.length !== 1 ? 's' : ''} placed automatically`});
+    const highWaste = exp.filter(i => (i.estimated_waste || 0) > 50);
+    if (highWaste.length > 0) {
+      const total = highWaste.reduce((s, i) => s + (i.estimated_waste || 0), 0);
+      highlights.push({type:'warning', text:`£${total.toFixed(0)} at-risk expiry value — action required`});
+    }
+    if (low.length === 0 && predicted === 0 && exp.length === 0)
+      highlights.push({type:'good', text:'All stock levels healthy — no action required'});
+
+    if (highlights.length > 0) {
+      const _c = {
+        urgent: {bg:'#fef2f2', border:'#fecaca', dot:'#dc2626'},
+        warning:{bg:'#fffbeb', border:'#fde68a', dot:'#d97706'},
+        good:   {bg:'#f0fdf4', border:'#bbf7d0', dot:'#16a34a'},
+      };
+      html += `<div class="card-title" style="margin-top:0.5rem"><i class="ti ti-sparkles" style="color:#1D9E75"></i> AI highlights</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.2rem">`;
+      highlights.forEach(h => {
+        const c = _c[h.type] || _c.warning;
+        html += `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:${c.bg};border:1px solid ${c.border};border-radius:8px;font-size:13px;color:#1a1a2e">
+          <span style="width:8px;height:8px;border-radius:50%;background:${c.dot};flex-shrink:0;margin-top:4px"></span>
+          <span>${h.text}</span></div>`;
+      });
+      html += '</div>';
     }
 
     if (low.length > 0) {
