@@ -383,8 +383,9 @@
 <script>
 const BASE = 'https://web-production-1f27a.up.railway.app';
 
+const API_KEY = 'pharmagent-2026';
 function authHeaders(includeContentType = false) {
-  const h = {};
+  const h = { 'X-API-Key': API_KEY };
   if (includeContentType) h['Content-Type'] = 'application/json';
   return h;
 }
