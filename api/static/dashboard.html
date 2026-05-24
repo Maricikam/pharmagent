@@ -16,7 +16,7 @@
   .topbar-badge { margin-left: auto; background: #e6f7f1; color: #1D9E75; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
   .main { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
   .nav { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .nav-btn { padding: 9px 18px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 7px; transition: all 0.15s; font-family: inherit; }
+  .nav-btn { padding: 8px 13px; border: 1.5px solid #e5e9f0; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: all 0.15s; font-family: inherit; }
   .nav-btn:hover { border-color: #1D9E75; color: #1D9E75; background: #f0faf6; }
   .nav-btn.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
   .nav-btn i { font-size: 16px; }
@@ -229,6 +229,28 @@
   .step-arrow { color: #d1d5db; font-size: 11px; align-self: center; }
   .topbar-alert { margin-left: 8px; background: #fef2f2; color: #dc2626; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: none; align-items: center; gap: 4px; }
   .topbar-alert.show { display: inline-flex; }
+  .anl-group-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 14px 0 8px; padding: 5px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px; }
+  .anl-group-header.urgent { background: #fef2f2; color: #dc2626; }
+  .anl-group-header.high   { background: #fffbeb; color: #d97706; }
+  .anl-group-header.routine{ background: #f0fdf4; color: #1D9E75; }
+  .anl-patient-card { background: #fff; border: 1px solid #e5e9f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 7px; border-left: 3px solid #e5e9f0; }
+  .anl-patient-card.urgent { border-left-color: #dc2626; }
+  .anl-patient-card.high   { border-left-color: #d97706; }
+  .anl-patient-card.routine{ border-left-color: #1D9E75; }
+  .anl-patient-name { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+  .anl-priority-badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+  .anl-priority-badge.urgent { background: #fef2f2; color: #dc2626; }
+  .anl-priority-badge.high   { background: #fffbeb; color: #d97706; }
+  .anl-priority-badge.routine{ background: #f0fdf4; color: #1D9E75; }
+  .anl-fact { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #6b7280; padding: 2px 8px; background: #f3f4f6; border-radius: 10px; margin: 2px 3px 2px 0; }
+  .anl-signal-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; margin-bottom: 6px; }
+  .anl-signal-name { font-size: 14px; font-weight: 600; color: #1a1a2e; flex: 1; }
+  .anl-signal-detail { font-size: 12px; color: #9ca3af; }
+  .anl-timeframe { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; flex-shrink: 0; }
+  .anl-timeframe.immediate { background: #fef2f2; color: #dc2626; }
+  .anl-timeframe.week      { background: #fffbeb; color: #d97706; }
+  .anl-timeframe.month     { background: #eff6ff; color: #2563eb; }
+  .anl-action-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; margin-bottom: 6px; font-size: 13px; color: #1a1a2e; line-height: 1.55; }
 </style>
 </head>
 <body>
@@ -451,8 +473,8 @@
     <div class="card">
       <div class="card-title"><i class="ti ti-chart-bar"></i> Analytics</div>
       <p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:1.25rem">Predictive insights powered by the Analytics Agent. Requires Live AI mode.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" id="anl-priority-btn" onclick="runAnalytics('prioritize')">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0">
+        <button class="btn btn-primary" id="anl-priority-btn" onclick="runAnalytics('prioritize')" style="margin-top:0">
           <i class="ti ti-users"></i> Patient prioritisation
         </button>
         <button class="btn btn-primary" id="anl-anomaly-btn" onclick="runAnalytics('anomalies')" style="background:#d97706;margin-top:0">
@@ -1215,39 +1237,115 @@ async function runAnalytics(type) {
     const result = data.result || {};
     let html = '';
 
+    /* ── Patient prioritisation ── */
     if (type === 'prioritize' && result.patients) {
-      html += `<div class="stat-grid">
+      html += `<div class="stat-grid" style="margin-bottom:1.25rem">
         <div class="stat"><div class="stat-label">Urgent</div><div class="stat-value danger">${result.urgent_count}</div></div>
         <div class="stat"><div class="stat-label">High risk</div><div class="stat-value warning">${result.high_count}</div></div>
         <div class="stat"><div class="stat-label">Routine</div><div class="stat-value good">${result.routine_count}</div></div>
       </div>`;
+      const groups = [
+        { key:'URGENT',  label:'Urgent — action today', cls:'urgent',  icon:'ti-alert-circle'   },
+        { key:'HIGH',    label:'High risk',              cls:'high',    icon:'ti-alert-triangle' },
+        { key:'ROUTINE', label:'Routine',                cls:'routine', icon:'ti-circle-check'   },
+      ];
+      groups.forEach(g => {
+        const pts = result.patients.filter(p => p.priority === g.key);
+        if (!pts.length) return;
+        html += `<div class="anl-group-header ${g.cls}"><i class="ti ${g.icon}" style="font-size:13px"></i> ${g.label}<span style="margin-left:auto">${pts.length} patient${pts.length!==1?'s':''}</span></div>`;
+        pts.forEach(p => {
+          let facts = '';
+          if (p.overdue_days > 0) facts += `<span class="anl-fact" style="color:#dc2626;background:#fef2f2"><i class="ti ti-clock" style="font-size:11px"></i> ${p.overdue_days}d overdue</span>`;
+          facts += `<span class="anl-fact"><i class="ti ti-pill" style="font-size:11px"></i> ${p.num_medications} med${p.num_medications!==1?'s':''}</span>`;
+          if (p.adherence_risk && p.adherence_risk!=='LOW') facts += `<span class="anl-fact" style="${p.adherence_risk==='HIGH'?'color:#d97706;background:#fffbeb':''}"><i class="ti ti-activity" style="font-size:11px"></i> ${p.adherence_risk} adherence risk</span>`;
+          html += `<div class="anl-patient-card ${g.cls}">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <div class="anl-patient-name">${p.name}</div>
+              <span class="anl-priority-badge ${g.cls}" style="margin-left:auto">${g.key}</span>
+            </div>
+            <div>${facts}</div>
+            <div class="anl-signal-detail" style="margin-top:5px">CHI: ${p.nhs_number}</div>
+          </div>`;
+        });
+      });
+
+    /* ── Anomaly detection ── */
     } else if (type === 'anomalies' && result.signals) {
       const s = result.signals;
-      html += `<div class="stat-grid">
-        <div class="stat"><div class="stat-label">Overdue collections</div><div class="stat-value ${s.overdue_patients > 0 ? 'danger' : 'good'}">${s.overdue_patients}</div></div>
-        <div class="stat"><div class="stat-label">Polypharmacy patients</div><div class="stat-value ${s.polypharmacy_patients > 0 ? 'warning' : 'good'}">${s.polypharmacy_patients}</div></div>
-        <div class="stat"><div class="stat-label">Emergency supplies (7d)</div><div class="stat-value ${s.recent_emergency_supplies > 0 ? 'warning' : 'good'}">${s.recent_emergency_supplies}</div></div>
-        <div class="stat"><div class="stat-label">Shortage risk items</div><div class="stat-value ${(s.shortage_risk_items||[]).length > 0 ? 'warning' : 'good'}">${(s.shortage_risk_items||[]).length}</div></div>
+      html += `<div class="stat-grid" style="margin-bottom:1.25rem">
+        <div class="stat"><div class="stat-label">Overdue collections</div><div class="stat-value ${s.overdue_patients>0?'danger':'good'}">${s.overdue_patients}</div></div>
+        <div class="stat"><div class="stat-label">Polypharmacy</div><div class="stat-value ${s.polypharmacy_patients>0?'warning':'good'}">${s.polypharmacy_patients}</div></div>
+        <div class="stat"><div class="stat-label">Emergency supplies (7d)</div><div class="stat-value ${s.recent_emergency_supplies>0?'warning':'good'}">${s.recent_emergency_supplies}</div></div>
+        <div class="stat"><div class="stat-label">Stock shortage risk</div><div class="stat-value ${(s.shortage_risk_items||[]).length>0?'warning':'good'}">${(s.shortage_risk_items||[]).length}</div></div>
       </div>`;
-    } else if (type === 'workflow' && result.action_counts) {
-      const top = Object.entries(result.action_counts).sort((a,b) => b[1]-a[1]).slice(0,3);
-      if (top.length) {
-        html += `<div class="section-label">Top audit actions (last 50 events)</div>
-        <div class="stat-grid">`;
-        top.forEach(([action, count]) => {
-          html += `<div class="stat"><div class="stat-label">${action.replace(/_/g,' ')}</div><div class="stat-value" style="font-size:20px">${count}</div></div>`;
+      if ((s.overdue_details||[]).length) {
+        html += `<div class="anl-group-header urgent"><i class="ti ti-clock" style="font-size:13px"></i> Overdue collections</div>`;
+        s.overdue_details.forEach(p => {
+          html += `<div class="anl-patient-card urgent">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
+              <div class="anl-patient-name">${p.name}</div>
+              <span class="anl-priority-badge urgent" style="margin-left:auto">${p.days_overdue}d overdue</span>
+            </div>
+            <div><span class="anl-fact"><i class="ti ti-pill" style="font-size:11px"></i> ${p.medication}</span></div>
+            <div class="anl-signal-detail" style="margin-top:4px">CHI: ${p.nhs_number} &nbsp;·&nbsp; Due: ${p.next_due_date}</div>
+          </div>`;
         });
+      }
+      if ((s.polypharmacy_details||[]).length) {
+        html += `<div class="anl-group-header high"><i class="ti ti-alert-triangle" style="font-size:13px"></i> Polypharmacy — 5+ medications</div>`;
+        s.polypharmacy_details.forEach(p => {
+          html += `<div class="anl-patient-card high">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="anl-patient-name">${p.name}</div>
+              <span class="anl-priority-badge high" style="margin-left:auto">${p.active_prescriptions} medications</span>
+            </div>
+            <div class="anl-signal-detail" style="margin-top:4px">CHI: ${p.nhs_number}</div>
+          </div>`;
+        });
+      }
+      if ((s.shortage_risk_items||[]).length) {
+        html += `<div class="anl-group-header high"><i class="ti ti-box" style="font-size:13px"></i> Stock shortage risk — &lt;14 days supply</div>`;
+        s.shortage_risk_items.forEach(item => {
+          html += `<div class="anl-signal-row">
+            <div><div class="anl-signal-name">${item.medication}</div><div class="anl-signal-detail">${item.active_prescriptions} active prescription${item.active_prescriptions!==1?'s':''}</div></div>
+            <span class="anl-priority-badge high">${item.days_of_supply!=null?item.days_of_supply+'d supply':'No stock'}</span>
+          </div>`;
+        });
+      }
+      if (!s.overdue_patients && !s.polypharmacy_patients && !s.recent_emergency_supplies && !(s.shortage_risk_items||[]).length) {
+        html += `<div class="empty-state"><i class="ti ti-circle-check"></i><p style="margin-top:6px">No anomalies detected — all signals normal.</p></div>`;
+      }
+
+    /* ── Workflow optimisation ── */
+    } else if (type === 'workflow') {
+      const top = Object.entries(result.action_counts||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      if (top.length) {
+        html += `<div class="section-label">Top audit actions (last 50 events)</div><div class="stat-grid" style="margin-bottom:1.25rem">`;
+        top.forEach(([action,count]) => { html += `<div class="stat"><div class="stat-label">${action.replace(/_/g,' ')}</div><div class="stat-value" style="font-size:20px">${count}</div></div>`; });
         html += `</div>`;
+      }
+      if (result.report) {
+        const tagMap = { '[IMMEDIATE]':{ cls:'immediate', label:'IMMEDIATE' }, '[THIS WEEK]':{ cls:'week', label:'THIS WEEK' }, '[NEXT MONTH]':{ cls:'month', label:'NEXT MONTH' } };
+        let taggedHtml = '', fallback = '', hasTagged = false;
+        result.report.split('\n').map(l=>l.trim()).filter(Boolean).forEach(line => {
+          let matched = false;
+          for (const [tag, conf] of Object.entries(tagMap)) {
+            if (line.toUpperCase().includes(tag)) {
+              const text = line.replace(new RegExp(tag.replace(/[[\]]/g,'\\$&'),'i'),'').replace(/^[\s\-*\d.]+/,'').trim();
+              if (text) { taggedHtml += `<div class="anl-action-row"><span class="anl-timeframe ${conf.cls}">${conf.label}</span><span>${text}</span></div>`; hasTagged = true; }
+              matched = true; break;
+            }
+          }
+          if (!matched && line.length>10 && !/^[=\-]+$/.test(line) && !/^(WORKFLOW|PHARMAGENT|PharmAgent|\d{2}\/)/i.test(line)) fallback += line + ' ';
+        });
+        html += `<div class="section-label">Recommendations</div>`;
+        html += hasTagged ? taggedHtml : `<div class="msg-box" style="font-size:13px;line-height:1.7">${fallback.trim()}</div>`;
       }
     }
 
-    if (result.report) {
-      html += `<div class="card-title" style="margin-top:0.5rem"><i class="ti ti-sparkles" style="color:#1D9E75"></i> AI analysis</div>
-               <div class="msg-box">${renderClinicalText(result.report)}</div>`;
-    }
     box.innerHTML = html || '<p style="color:#6b7280">No data returned.</p>';
   } catch(e) {
-    box.innerHTML = `<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> ${e.message || 'Error running analytics.'}</p>`;
+    box.innerHTML = `<p style="color:#dc2626;font-size:14px;"><i class="ti ti-alert-circle"></i> ${e.message||'Error running analytics.'}</p>`;
   }
   btn.disabled = false;
   btn.innerHTML = ep.orig;

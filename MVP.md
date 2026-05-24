@@ -39,9 +39,9 @@ These are implemented and working but are not the primary value proposition:
 |---|---|
 | **Shift handover** | Useful but lower urgency than the core six above. |
 | **Emergency supply record** | Covers an NHS legal requirement. Relatively rare event. |
-| **Analytics — patient prioritisation** | Useful for morning planning. Depends on having patient data populated. |
-| **Analytics — anomaly detection** | Flags what the pharmacist might otherwise miss across the full patient list. |
-| **Analytics — workflow optimisation** | Advisory only. Lower urgency for MVP. |
+| **Analytics — patient prioritisation** | Useful for morning planning. Depends on having patient data populated. Exposed via dashboard tab and `pharmagent-analytics` OpenClaw skill. |
+| **Analytics — anomaly detection** | Flags what the pharmacist might otherwise miss across the full patient list. Same skill and tab. |
+| **Analytics — workflow optimisation** | Advisory only. Lower urgency for MVP. Same skill and tab. |
 
 ---
 

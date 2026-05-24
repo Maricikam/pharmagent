@@ -1,6 +1,6 @@
 # PharmAgent AI — OpenClaw Integration Guide
 
-PharmAgent ships four OpenClaw skills that let you control the pharmacy system directly from WhatsApp, Telegram, Discord, or any chat app connected to your OpenClaw instance.
+PharmAgent ships eight OpenClaw skills that let you control the pharmacy system directly from WhatsApp, Telegram, Discord, or any chat app connected to your OpenClaw instance.
 
 ---
 
@@ -9,9 +9,13 @@ PharmAgent ships four OpenClaw skills that let you control the pharmacy system d
 | Skill | What it does |
 |---|---|
 | `pharmagent-interaction-check` | Check a patient's medications for interaction risks before dispensing. Backed by 80 validated DDI records (DrugBank 6.0 / Micromedex) — returns safer alternatives and specific management steps, not just a severity label. |
-| `pharmagent-stock-review` | Review stock levels, flag expiry, trigger supplier reorders |
+| `pharmagent-stock-review` | Review stock levels, flag expiry, trigger supplier reorders. |
 | `pharmagent-patient-engagement` | Send personalised SMS refill reminders, prioritised by adherence risk. High-risk patients (elderly, complex regimens, mental health medications) are contacted first and receive more supportive messaging. |
-| `pharmagent-daily-briefing` | Full orchestrated daily workflow — stock review, expiry check, patient reminders |
+| `pharmagent-daily-briefing` | Full orchestrated daily workflow — stock review, expiry check, patient reminders. Can be scheduled as a cron task for an automated 08:00 weekday briefing. |
+| `pharmagent-patient-profile` | Look up a patient's full active medication profile by CHI number or name. |
+| `pharmagent-handover` | Generate a structured NHS shift handover note covering audit activity, stock alerts, patients due in 3 days, and HIGH-risk interaction flags from the shift. |
+| `pharmagent-emergency-supply` | Process an emergency medication supply request — resolves the patient, runs an interaction check, and generates a legally formatted NHS Scotland supply record. |
+| `pharmagent-analytics` | Three predictive capabilities: patient prioritisation by clinical urgency (URGENT / HIGH / ROUTINE), anomaly detection across stock and patient behaviour, and workflow optimisation recommendations tagged by timeframe. |
 
 ---
 
@@ -86,6 +90,15 @@ Once set up, you can talk to PharmAgent naturally:
 
 > **"Send SMS reminders to patients due this week"**
 > → Contacts all patients with prescriptions due in 7 days
+
+> **"Prioritise my patients for today"**
+> → Returns a ranked list: URGENT (overdue collections) → HIGH (adherence risk) → ROUTINE, with key facts per patient
+
+> **"Any anomalies I should know about?"**
+> → Flags overdue collections, polypharmacy patients, emergency supply spikes, and stock with fewer than 14 days supply
+
+> **"How can I optimise the workflow?"**
+> → AI recommendations grouped by IMMEDIATE / THIS WEEK / NEXT MONTH based on audit history and prescription demand
 
 ---
 

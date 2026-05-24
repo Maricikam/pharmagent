@@ -89,6 +89,7 @@ Seven skills connect PharmAgent to any chat app via OpenClaw:
 | `pharmagent-emergency-supply` | "Emergency supply for Robertson — he's run out of Warfarin" |
 | `pharmagent-stock-review` | "What's running low?" |
 | `pharmagent-engagement-campaign` | "Send refill reminders this week" |
+| `pharmagent-analytics` | "Prioritise my patients", "Any anomalies today?", "How can I optimise the workflow?" |
 
 The daily briefing skill can be scheduled as a cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.
 
@@ -104,6 +105,7 @@ The web dashboard demonstrates the full system in one place:
 - **Patient Lookup** — full medication profile by CHI number or patient name.
 - **Patient Engagement** — personalised SMS/email campaigns across 9 types. Overdue patient outreach (adherence check) pulls directly from the anomaly detection pipeline.
 - **Audit Log** — live table of all agent actions with timestamp, agent identity, and detail.
+- **Analytics** — three views driven by the Analytics Agent: patient prioritisation (urgency-scored patient cards grouped URGENT / HIGH / ROUTINE), anomaly detection (overdue collections, polypharmacy flags, stock shortage risk rendered as structured cards, not raw text), and workflow optimisation (AI recommendations parsed by timeframe and displayed as IMMEDIATE / THIS WEEK / NEXT MONTH action rows).
 
 ## Live demo
 

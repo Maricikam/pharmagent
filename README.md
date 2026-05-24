@@ -14,6 +14,7 @@ PharmAgent AI is a multi-agent system that helps pharmacists check drug interact
 | **Patient Lookup** | Full medication profile by CHI number or patient name. |
 | **Patient Engagement** | Personalised SMS/email campaigns — 9 types including refill reminders, adherence check (overdue patients), flu vaccination, seasonal campaigns. |
 | **Audit Log** | Live view of all agent actions logged for regulatory compliance. |
+| **Analytics** | Patient prioritisation by clinical urgency (URGENT / HIGH / ROUTINE cards), anomaly detection across stock and patient behaviour, and workflow optimisation recommendations tagged by timeframe (IMMEDIATE / THIS WEEK / NEXT MONTH). |
 
 ---
 
@@ -109,6 +110,7 @@ Seven OpenClaw skills are included in the `skills/` directory:
 | `pharmagent-emergency-supply` | "Emergency supply for Robertson — he's run out of Warfarin" |
 | `pharmagent-stock-review` | "What's running low on stock?" |
 | `pharmagent-engagement-campaign` | "Send refill reminders this week" |
+| `pharmagent-analytics` | "Prioritise my patients", "Any anomalies today?", "Optimise the workflow" |
 
 See [OPENCLAW.md](OPENCLAW.md) for full setup instructions.
 
@@ -265,7 +267,8 @@ pharmagent/
 │   ├── pharmagent-handover/
 │   ├── pharmagent-emergency-supply/
 │   ├── pharmagent-stock-review/
-│   └── pharmagent-engagement-campaign/
+│   ├── pharmagent-engagement-campaign/
+│   └── pharmagent-analytics/
 ├── data/                             # Clinical datasets (gitignored)
 │   ├── Interaction Safety Agent.json # 80 DDI records (DrugBank 6.0 / Micromedex)
 │   └── patient_adherence_dataset.csv # 5,000-record adherence study
