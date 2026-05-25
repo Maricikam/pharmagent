@@ -102,6 +102,7 @@ def prioritize_patients() -> dict:
                 "num_medications": num_meds,
                 "medications": [rx.medication.name for rx in rxs],
                 "adherence_risk": risk_result["risk_level"],
+                "risk_factors": risk_result.get("factors", []),
             })
     finally:
         db.close()
