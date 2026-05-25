@@ -122,8 +122,8 @@ The web dashboard demonstrates the full system in one place:
 
 | | |
 |---|---|
-| **Dashboard walkthrough** | https://youtu.be/lOdH7-khP-g |
-| **WhatsApp integration** | https://youtu.be/BmkHsPRh1uE |
+| **Dashboard walkthrough** | https://youtu.be/BmkHsPRh1uE |
+| **WhatsApp integration** | https://youtu.be/lOdH7-khP-g |
 
 All 10 demo patients are seeded. Quick-fill buttons in the dashboard auto-populate the forms — no CHI number memorisation needed.
 

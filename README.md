@@ -30,8 +30,8 @@ PharmAgent AI is a multi-agent system that helps pharmacists check drug interact
 
 | | |
 |---|---|
-| **Dashboard walkthrough** | [▶ Watch on YouTube](https://youtu.be/lOdH7-khP-g) |
-| **WhatsApp integration** | [▶ Watch on YouTube](https://youtu.be/BmkHsPRh1uE) |
+| **Dashboard walkthrough** | [▶ Watch on YouTube](https://youtu.be/BmkHsPRh1uE) |
+| **WhatsApp integration** | [▶ Watch on YouTube](https://youtu.be/lOdH7-khP-g) |
 
 ### WhatsApp demo (via OpenClaw)
 
