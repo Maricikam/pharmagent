@@ -19,26 +19,24 @@ Use this skill to send proactive refill reminders to patients, or to check who n
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401:
+Every request must include the API key header — without it the server returns 401.
 
-```
-X-API-Key: $PHARMAGENT_API_KEY
-```
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
 
 ## How to use
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=refill_reminder
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 ```
 
 Other campaign types:
 ```
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=adherence_check
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=seasonal
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 ```
 
 **Parameters:**

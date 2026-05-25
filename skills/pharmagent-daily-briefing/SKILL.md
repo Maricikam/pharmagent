@@ -26,25 +26,23 @@ Every weekday at 08:00: run pharmagent-daily-briefing
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401:
+Every request must include the API key header — without it the server returns 401.
 
-```
-X-API-Key: $PHARMAGENT_API_KEY
-```
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
 
 ## How to use
 
-Run all three agent steps in sequence using these GET calls:
+Run all three agent steps in sequence. For each request, pass `X-API-Key` set to the value of `$PHARMAGENT_API_KEY`:
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/stock-review
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 
 GET https://web-production-1f27a.up.railway.app/stock/expiring?days=30
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=refill_reminder
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 ```
 
 ## What it does

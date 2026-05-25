@@ -17,18 +17,16 @@ Use this skill when a patient has run out of medication and cannot reach their G
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401:
+Every request must include the API key header — without it the server returns 401.
 
-```
-X-API-Key: $PHARMAGENT_API_KEY
-```
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
 
 ## How to use
 
 ```
 POST https://web-production-1f27a.up.railway.app/agents/emergency-supply
 Content-Type: application/json
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 
 {
   "medication": "Warfarin 5mg",
@@ -39,7 +37,7 @@ X-API-Key: $PHARMAGENT_API_KEY
 }
 ```
 
-Or by CHI number:
+Or by CHI number (also requires `X-API-Key: <value of $PHARMAGENT_API_KEY>` header):
 
 ```json
 {

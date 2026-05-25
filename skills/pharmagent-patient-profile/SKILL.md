@@ -18,11 +18,9 @@ Use this skill to look up what a patient is currently prescribed, without runnin
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401:
+Every request must include the API key header — without it the server returns 401.
 
-```
-X-API-Key: $PHARMAGENT_API_KEY
-```
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
 
 ## How to use
 
@@ -30,14 +28,14 @@ X-API-Key: $PHARMAGENT_API_KEY
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/patient-profile?nhs_number=1203480016
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 ```
 
 ### By patient name
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/patient-profile?name=Margaret%20Campbell
-X-API-Key: $PHARMAGENT_API_KEY
+X-API-Key: <value of $PHARMAGENT_API_KEY>
 ```
 
 **Parameters:**
