@@ -74,14 +74,14 @@ Both datasets are excluded from the repository (`.gitignore`) and loaded at runt
 3. **Full audit trail** — every agent action is logged to a timestamped `AuditLog` table with agent identity and patient reference, satisfying NHS Scotland regulatory requirements.
 4. **CHI number validation (Modulus 11)** — Scottish CHI numbers are validated against the official NHS Scotland Modulus 11 check-digit algorithm before any patient query reaches the database. A single transposed digit on a 10-digit CHI would silently match the wrong patient, meaning the interaction check would run against the wrong person's medications. Modulus 11 catches this at the API boundary — the request is rejected before it reaches the database.
 5. **Data residency** — designed for deployment within DataVita's Scottish data centres, keeping patient data within Scotland per NHS Scotland GDPR requirements.
-6. **API key protection** — under UK GDPR, patient records require explicit access controls. All endpoints except `/health` and `/demo` require an `X-API-Key` header enforced server-side. Without this, the live deployment would expose all patient medication histories publicly. The dashboard sends the key automatically — judges do not need to enter anything.
+6. **API key protection** — endpoints support optional `X-API-Key` header or `?api_key=` query parameter access control. The live demo runs in open mode for judge access; production deployments would set `API_KEY` server-side to restrict access to patient records.
 7. **Rate limiting** — agent endpoints are rate-limited (30/minute general, 10/minute analytics) via `slowapi` to prevent API abuse and runaway AI costs in a shared deployment.
 8. **Dataset governance** — the DrugBank interaction data and patient adherence dataset are excluded from the repository (`.gitignore`). DrugBank 6.0 has licensing restrictions that prohibit public redistribution; the adherence dataset is derived from real patient records and cannot be committed to a public repo. The system falls back to hardcoded equivalents on Railway so the live demo is unaffected.
 9. **Demand-based stock forecasting** — days of supply is calculated as `current_stock ÷ active_prescriptions`, not threshold comparison. This flags medications as shortage-risk even when they are above the reorder threshold, if prescription demand is high enough to exhaust stock within 14 days.
 
 ## OpenClaw integration
 
-Seven skills connect PharmAgent to any chat app via OpenClaw:
+Eight skills connect PharmAgent to any chat app via OpenClaw:
 
 | Skill | Trigger |
 |---|---|
@@ -91,7 +91,7 @@ Seven skills connect PharmAgent to any chat app via OpenClaw:
 | `pharmagent-handover` | "Generate handover notes" |
 | `pharmagent-emergency-supply` | "Emergency supply for Robertson — he's run out of Warfarin" |
 | `pharmagent-stock-review` | "What's running low?" |
-| `pharmagent-engagement-campaign` | "Send refill reminders this week" |
+| `pharmagent-patient-engagement` | "Send refill reminders this week" |
 | `pharmagent-analytics` | "Prioritise my patients", "Any anomalies today?", "How can I optimise the workflow?" |
 
 The daily briefing skill can be scheduled as a cron task in OpenClaw, delivering an automated 08:00 weekday briefing to the pharmacist's phone.

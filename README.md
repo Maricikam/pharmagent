@@ -106,7 +106,7 @@ All patient data is stored in the configured database. In production, this would
 
 ## OpenClaw integration
 
-Seven OpenClaw skills are included in the `skills/` directory:
+Eight OpenClaw skills are included in the `skills/` directory:
 
 | Skill | Trigger |
 |---|---|
@@ -116,7 +116,7 @@ Seven OpenClaw skills are included in the `skills/` directory:
 | `pharmagent-handover` | "Generate handover notes" |
 | `pharmagent-emergency-supply` | "Emergency supply for Robertson — he's run out of Warfarin" |
 | `pharmagent-stock-review` | "What's running low on stock?" |
-| `pharmagent-engagement-campaign` | "Send refill reminders this week" |
+| `pharmagent-patient-engagement` | "Send refill reminders this week" |
 | `pharmagent-analytics` | "Prioritise my patients", "Any anomalies today?", "Optimise the workflow" |
 
 See [OPENCLAW.md](OPENCLAW.md) for full setup instructions.
@@ -274,7 +274,7 @@ pharmagent/
 │   ├── pharmagent-handover/
 │   ├── pharmagent-emergency-supply/
 │   ├── pharmagent-stock-review/
-│   ├── pharmagent-engagement-campaign/
+│   ├── pharmagent-patient-engagement/
 │   └── pharmagent-analytics/
 ├── data/                             # Clinical datasets (gitignored)
 │   ├── Interaction Safety Agent.json # 80 DDI records (DrugBank 6.0 / Micromedex)
