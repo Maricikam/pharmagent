@@ -221,12 +221,12 @@ def send_patient_message(patient_id: int, channel: str, message: str) -> dict:
 
     log_audit_event(
         agent="PatientEngagementAgent",
-        action="MESSAGE_SENT",
+        action="MESSAGE_GENERATED",
         details=f"Channel: {channel} | To: {recipient} | Message: {message[:100]}...",
         patient_id=patient_id,
     )
     return {
-        "status": "sent",
+        "status": "generated",
         "patient": patient_name,
         "channel": channel,
         "recipient": recipient,

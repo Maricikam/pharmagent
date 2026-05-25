@@ -431,8 +431,8 @@
         <button class="demo-chip" onclick="demoFillPatient('0312430019')"><i class="ti ti-bolt"></i> William Stevenson</button>
         <button class="demo-chip" onclick="demoFillPatient('2706800011')"><i class="ti ti-bolt"></i> George Fraser</button>
       </div>
-      <label for="pat-nhs">CHI number</label>
-      <input id="pat-nhs" type="text" placeholder="Enter CHI number">
+      <label for="pat-nhs">CHI number or patient name</label>
+      <input id="pat-nhs" type="text" placeholder="Enter CHI number or patient name">
       <button class="btn btn-primary" id="pat-btn" onclick="runPatientLookup()">
         <i class="ti ti-search"></i> Look up patient
       </button>
@@ -1029,25 +1029,49 @@ async function runStockReview() {
 }
 
 async function runPatientLookup() {
-  const nhs = document.getElementById('pat-nhs').value.trim();
-  if (!nhs) return;
-  if (!/^\d{10}$/.test(nhs)) { showToast('CHI number must be exactly 10 digits.', true); return; }
+  const input = document.getElementById('pat-nhs').value.trim();
+  if (!input) return;
+  const isChi = /^\d{10}$/.test(input);
+  if (/^\d+$/.test(input) && !isChi) { showToast('CHI number must be exactly 10 digits.', true); return; }
   const orig = '<i class="ti ti-search"></i> Look up patient';
   setLoading('pat-btn', true);
   const box = document.getElementById('pat-result');
   box.classList.add('show');
   box.innerHTML = '<p style="color:#6b7280;font-size:14px;">Looking up patient...</p>';
   try {
-    const res = await fetch(BASE + '/patients/' + nhs, { headers: authHeaders() });
-    const data = await res.json();
-    const p = data.patient || data;
-    const meds = p.active_medications || p.medications || [];
+    let p, meds;
+    if (isChi) {
+      const res = await fetch(BASE + '/patients/' + input, { headers: authHeaders() });
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
+      p = data.patient || data;
+      meds = (p.active_medications || []).map(m => ({ name: m.name, dose: m.dose, frequency: m.frequency }));
+    } else {
+      const res = await fetch(BASE + '/agents/patient-profile?name=' + encodeURIComponent(input), { headers: authHeaders() });
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
+      if (data.multiple_matches) {
+        let html = '<div class="section-label">Multiple patients found — select one</div>';
+        data.multiple_matches.forEach(m => {
+          html += `<div class="stock-row" style="cursor:pointer" onclick="document.getElementById('pat-nhs').value='${m.nhs_number}';runPatientLookup()">
+            <div><div class="stock-name">${m.name}</div><div class="stock-detail">CHI: ${m.nhs_number} &nbsp;·&nbsp; DOB: ${m.date_of_birth || 'N/A'}</div></div>
+            <span class="badge badge-active" style="cursor:pointer">Select</span>
+          </div>`;
+        });
+        box.innerHTML = html;
+        setLoading('pat-btn', false, orig);
+        return;
+      }
+      p = data.patient || {};
+      p.dob = p.date_of_birth;
+      meds = (data.active_prescriptions || []).map(rx => ({ name: rx.medication, dose: rx.dosage, frequency: rx.frequency }));
+    }
     const initials = (p.name || 'XX').split(' ').map(n => n[0]).join('');
     let html = `<div class="patient-row">
       <div class="avatar">${initials}</div>
       <div>
         <div class="patient-name">${p.name || 'Unknown'}</div>
-        <div class="patient-meta">CHI: ${p.nhs_number || nhs} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div>
+        <div class="patient-meta">CHI: ${p.nhs_number || input} &nbsp;·&nbsp; DOB: ${p.dob || 'N/A'}</div>
       </div>
     </div>`;
     if (meds.length > 0) {
