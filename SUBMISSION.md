@@ -118,6 +118,13 @@ The web dashboard demonstrates the full system in one place:
 | **API docs** | https://web-production-1f27a.up.railway.app/docs |
 | **Health** | https://web-production-1f27a.up.railway.app/health |
 
+### Demo videos
+
+| | |
+|---|---|
+| **Dashboard walkthrough** | https://youtu.be/lOdH7-khP-g |
+| **WhatsApp integration** | https://youtu.be/BmkHsPRh1uE |
+
 All 10 demo patients are seeded. Quick-fill buttons in the dashboard auto-populate the forms — no CHI number memorisation needed.
 
 | CHI | Patient | Try checking against |
