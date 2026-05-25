@@ -214,6 +214,10 @@ Two validated clinical datasets are loaded at agent startup and excluded from th
 
 - **Human-in-the-loop:** All agent recommendations require pharmacist approval before clinical action
 - **Audit trail:** Every agent action logged with timestamp, agent identity, and action detail — visible in the dashboard Audit Log tab (`GET /audit/logs`)
+- **CHI validation (Modulus 11):** Every CHI number is validated against the official NHS Scotland Modulus 11 check-digit algorithm before any DB query. A transposed digit would silently match the wrong patient; validation rejects malformed CHI numbers at the API boundary.
+- **API key protection:** All patient-facing endpoints require `X-API-Key` header (enforced via FastAPI `Security` dependency). Satisfies UK GDPR access control requirements for patient data.
+- **Rate limiting:** Agent endpoints rate-limited via `slowapi` (30/minute general; 10/minute analytics) to prevent abuse and runaway AI costs.
+- **Dataset governance:** Clinical datasets excluded from the repository (`.gitignore`). DrugBank licensing prohibits public redistribution; the adherence dataset is derived from real patient records. System falls back to hardcoded equivalents when files are absent.
 - **Data residency:** Designed for DataVita Scottish data centres — patient data stays within Scotland (NHS Scotland GDPR / NFR-01)
 - **Encryption:** AES-256 at rest, TLS 1.3 in transit (production configuration)
 - **No secrets in code:** API keys via environment variables only; `.env` excluded from git

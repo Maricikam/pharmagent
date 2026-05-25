@@ -72,9 +72,12 @@ Both datasets are excluded from the repository (`.gitignore`) and loaded at runt
 1. **Deterministic interaction rules** — 80 clinically validated drug pairs with fixed severity levels injected into every interaction check. Claude reasons around them; it cannot override them.
 2. **Human-in-the-loop** — every agent recommendation requires pharmacist sign-off before clinical action is taken. The system advises; it does not dispense.
 3. **Full audit trail** — every agent action is logged to a timestamped `AuditLog` table with agent identity and patient reference, satisfying NHS Scotland regulatory requirements.
-4. **CHI number validation** — Scottish CHI numbers are validated against the Modulus 11 algorithm before any patient query reaches the database.
+4. **CHI number validation (Modulus 11)** — Scottish CHI numbers are validated against the official NHS Scotland Modulus 11 check-digit algorithm before any patient query reaches the database. A single transposed digit on a 10-digit CHI would silently match the wrong patient, meaning the interaction check would run against the wrong person's medications. Modulus 11 catches this at the API boundary — the request is rejected before it reaches the database.
 5. **Data residency** — designed for deployment within DataVita's Scottish data centres, keeping patient data within Scotland per NHS Scotland GDPR requirements.
-6. **API key protection** — all endpoints except `/health` and `/demo` require an `X-API-Key` header, enforced server-side. The dashboard sends the key automatically — judges do not need to enter anything.
+6. **API key protection** — under UK GDPR, patient records require explicit access controls. All endpoints except `/health` and `/demo` require an `X-API-Key` header enforced server-side. Without this, the live deployment would expose all patient medication histories publicly. The dashboard sends the key automatically — judges do not need to enter anything.
+7. **Rate limiting** — agent endpoints are rate-limited (30/minute general, 10/minute analytics) via `slowapi` to prevent API abuse and runaway AI costs in a shared deployment.
+8. **Dataset governance** — the DrugBank interaction data and patient adherence dataset are excluded from the repository (`.gitignore`). DrugBank 6.0 has licensing restrictions that prohibit public redistribution; the adherence dataset is derived from real patient records and cannot be committed to a public repo. The system falls back to hardcoded equivalents on Railway so the live demo is unaffected.
+9. **Demand-based stock forecasting** — days of supply is calculated as `current_stock ÷ active_prescriptions`, not threshold comparison. This flags medications as shortage-risk even when they are above the reorder threshold, if prescription demand is high enough to exhaust stock within 14 days.
 
 ## OpenClaw integration
 

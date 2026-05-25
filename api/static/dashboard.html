@@ -197,12 +197,19 @@
   .briefing-result { margin-top: 1.25rem; background: #f9fafb; border: 1px solid #e5e9f0; border-radius: 10px; padding: 1.25rem; display: none; color: #1a1a2e; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
   .briefing-result.show { display: block; }
   .briefing-result .c-section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; font-weight: 700; margin: 14px 0 5px; opacity: 1; }
+  .briefing-result .report-section { font-size: 14px; font-weight: 700; color: #1a1a2e; margin: 20px 0 6px; padding-bottom: 5px; border-bottom: 1px solid #d1d5db; }
+  .briefing-result .report-section:first-child { margin-top: 0; }
   .briefing-result p { margin: 4px 0; }
   .briefing-result ul { padding-left: 16px; margin: 4px 0 8px; }
   .briefing-result ul li { margin: 4px 0; }
   .briefing-result ol { padding-left: 16px; margin: 4px 0 8px; }
   .briefing-result ol li { margin: 4px 0; }
   .briefing-result hr { border: none; border-top: 1px solid #e5e9f0; margin: 10px 0; }
+  .action-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-right: 5px; letter-spacing: 0.03em; vertical-align: middle; }
+  .action-tag.urgent { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .action-tag.today { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .action-tag.week { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .action-tag.month { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
   .btn-download { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid #e5e9f0; background: #fff; color: #374151; display: none; align-items: center; gap: 6px; margin-top: 10px; margin-left: 8px; font-family: inherit; transition: all 0.15s; }
   .btn-download:hover { border-color: #1D9E75; color: #1D9E75; }
   .btn-download.show { display: inline-flex; }
@@ -573,7 +580,14 @@ async function loadTopbarAlert() {
 loadTopbarAlert();
 
 function inlineMd(text) {
-  return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[URGENT\]/g, '<span class="action-tag urgent">URGENT</span>')
+    .replace(/\[TODAY\]/g, '<span class="action-tag today">TODAY</span>')
+    .replace(/\[THIS WEEK\]/g, '<span class="action-tag week">THIS WEEK</span>')
+    .replace(/\[IMMEDIATE\]/g, '<span class="action-tag urgent">IMMEDIATE</span>')
+    .replace(/\[NEXT MONTH\]/g, '<span class="action-tag month">NEXT MONTH</span>');
 }
 
 function chiLabel(text) {
@@ -589,7 +603,19 @@ function formatMedPill(m) {
 function renderClinicalText(text) {
   if (!text) return '';
   text = chiLabel(text);
-  const lines = text.split('\n');
+  const rawLines = text.split('\n');
+
+  // Pre-process: convert "Title\n------" underline-style headers into a marked line
+  const lines = [];
+  for (let i = 0; i < rawLines.length; i++) {
+    if (rawLines[i].trim() && i + 1 < rawLines.length && /^-{4,}$/.test(rawLines[i + 1].trim())) {
+      lines.push('\x01' + rawLines[i].trim());
+      i++; // skip the dashes line
+    } else {
+      lines.push(rawLines[i]);
+    }
+  }
+
   let html = '';
   let listStack = [];
   let tableLines = [];
@@ -620,6 +646,11 @@ function renderClinicalText(text) {
     if (t.startsWith('|')) { closeAll(); tableLines.push(t); continue; }
     if (tableLines.length) flushTable();
     if (!t) { closeAll(); continue; }
+    if (t.startsWith('\x01')) {
+      closeAll();
+      html += `<div class="report-section">${inlineMd(t.slice(1))}</div>`;
+      continue;
+    }
     if (t === '---' || /^-{3,}$/.test(t)) { closeAll(); html += '<hr>'; continue; }
     if (/^#{1,3}\s/.test(t)) {
       closeAll();
