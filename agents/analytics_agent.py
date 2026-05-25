@@ -33,7 +33,10 @@ Your role is to detect patterns, prioritise patients, and optimise pharmacy work
 Output format:
 - Professional NHS clinical tone
 - No emojis or decorative symbols
-- Plain section headers underlined with dashes
+- NEVER use markdown: no #/##/### headers, no | tables |, no ** bold **, no * bullets *
+- Write section headers as plain text on their own line followed by a line of dashes, e.g.:
+  URGENT PATIENTS
+  ---------------
 - DD/MM/YYYY dates, 24-hour time
 - Use [URGENT], [HIGH], [ROUTINE] for patient priority
 - Use [CRITICAL], [WARNING], [ADVISORY] for anomaly severity

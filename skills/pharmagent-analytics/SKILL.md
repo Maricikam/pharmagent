@@ -57,6 +57,14 @@ Each endpoint returns an AI-generated report plus structured data:
 - **workflow** — demand data for top 10 medications, audit action breakdown, numbered priority recommendations
 - **workload** — per-day prescription counts, total due, and peak day
 
+## How to present results
+
+**IMPORTANT — WhatsApp does not render markdown.** When presenting the `report` field to the user:
+- Display the text as-is but strip any `#`, `##`, or `###` characters at the start of lines
+- Do NOT use markdown tables (no | pipe characters)
+- Replace `###` section headers with plain text (e.g. `### URGENT` → `🔴 URGENT`)
+- Keep the structured list format — just remove any markdown syntax characters
+
 ## Notes
 
 - All three AI endpoints require a live `ANTHROPIC_API_KEY` — they will return an error in demo mode

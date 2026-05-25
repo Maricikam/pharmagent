@@ -44,6 +44,33 @@ Returns:
 - Delivery status for each message
 - Patients skipped (opted out or recently contacted)
 
+## How to present results
+
+**IMPORTANT — WhatsApp does not render markdown.** When summarising the API response, follow this exact format:
+
+```
+✅ Refill Reminders Sent — This Week
+
+4 patients contacted via SMS:
+
+1. Margaret Campbell (78) — Warfarin 5mg, Aspirin 75mg — due in 5 days — Sent
+2. James Morrison (70) — Clarithromycin 500mg — due in 2 days — Sent
+3. Patricia Henderson (63) — Lisinopril 10mg, Spironolactone 25mg — due in 7 days — Sent
+4. Dorothy Reid (59) — Alendronic Acid 70mg — due in 5 days — Sent
+
+Key alerts:
+• 🔴 Margaret Campbell — elderly patient, HIGH non-adherence risk
+• James Morrison — urgent (due in 2 days)
+
+All patients received personalised SMS with pharmacy contact: 0141 555 0199
+```
+
+Rules:
+- Use a numbered list, NOT a markdown table (no | pipe characters)
+- Do NOT use ## or ### headers — use plain text with an emoji prefix for section titles
+- Each patient on ONE line: Number. Name (age) — Medications — due in X days — Status
+- Keep it compact — one line per patient
+
 ## Notes
 
 - Messages are personalised using each patient's medication history and name

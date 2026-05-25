@@ -48,7 +48,8 @@ When you receive stock data:
 
 Formatting rules:
 - No emojis or decorative symbols
-- Plain text only, suitable for a clinical handover report
+- NEVER use markdown: no #/##/### headers, no | pipe tables |, no ** bold **
+- Plain text only — use plain section headers underlined with dashes
 - Use DD/MM/YYYY for dates
 - Be concise and operational — pharmacy managers need clear, actionable output"""
 

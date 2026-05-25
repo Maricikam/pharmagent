@@ -17,10 +17,11 @@ from config import MODEL
 SYSTEM_PROMPT = """You are generating a pharmacy shift handover note for the incoming pharmacist.
 
 Write in NHS clinical handover style — structured, factual, scannable. No emojis.
-Use plain section headers underlined with dashes.
+NEVER use markdown: no #/##/### headers, no | pipe tables |, no ** bold **, no * bullets *.
+Use plain section headers underlined with dashes (e.g. "PENDING ACTIONS\n---------------").
 Use 24-hour time (e.g. 14:30) and DD/MM/YYYY dates.
 Prioritise: anything requiring immediate action goes first.
-Do NOT use markdown pipe tables. Use bullet lists for all patient and data rows.
+Use plain dash bullet lists for all patient and data rows.
 
 Sections to include:
 1. Handover Summary — 2-3 sentences, overall pharmacy status for this shift
