@@ -16,15 +16,25 @@ Use this skill before dispensing a new medication to check for interactions with
 - "Run an interaction check"
 - "Check medications for CHI number 1203480016"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=<CHI>&new_medication_name=<medication>
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 Example:
 ```
 GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=1203480016&new_medication_name=Ibuprofen
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 **Parameters:**

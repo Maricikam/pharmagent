@@ -15,11 +15,20 @@ Use this skill when a patient has run out of medication and cannot reach their G
 - "Patient needs emergency supply of Metformin 500mg, 7 days' worth"
 - "Log an emergency supply — patient can't reach their doctor"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ```
 POST https://web-production-1f27a.up.railway.app/agents/emergency-supply
 Content-Type: application/json
+X-API-Key: $PHARMAGENT_API_KEY
 
 {
   "medication": "Warfarin 5mg",

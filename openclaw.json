@@ -8,35 +8,35 @@
         "enabled": true,
         "env": {
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
-          "PHARMAGENT_API_KEY": "your-api-key-here"
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-stock-review": {
         "enabled": true,
         "env": {
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
-          "PHARMAGENT_API_KEY": "your-api-key-here"
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-patient-engagement": {
         "enabled": true,
         "env": {
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
-          "PHARMAGENT_API_KEY": "your-api-key-here"
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-daily-briefing": {
         "enabled": true,
         "env": {
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
-          "PHARMAGENT_API_KEY": "your-api-key-here"
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-analytics": {
         "enabled": true,
         "env": {
           "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
-          "PHARMAGENT_API_KEY": "your-api-key-here"
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       }
     }

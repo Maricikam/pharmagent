@@ -17,24 +17,35 @@ Use this skill when asked about stock levels, medication supply, expiring items,
 - "Do we need to reorder anything?"
 - "Generate a stock report"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ### Full stock review (recommended — triggers auto-reorders)
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/stock-review
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ### Check low stock only
 
 ```
 GET https://web-production-1f27a.up.railway.app/stock/low
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ### Check near-expiry items
 
 ```
 GET https://web-production-1f27a.up.railway.app/stock/expiring?days=30
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ## Output

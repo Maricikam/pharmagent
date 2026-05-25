@@ -24,14 +24,27 @@ Add to OpenClaw automation to run automatically every weekday morning:
 Every weekday at 08:00: run pharmagent-daily-briefing
 ```
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 Run all three agent steps in sequence using these GET calls:
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/stock-review
+X-API-Key: $PHARMAGENT_API_KEY
+
 GET https://web-production-1f27a.up.railway.app/stock/expiring?days=30
+X-API-Key: $PHARMAGENT_API_KEY
+
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=refill_reminder
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ## What it does

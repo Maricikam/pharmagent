@@ -19,6 +19,14 @@ Use this skill to get predictive insights about patients, detect anomalies, or r
 - "Give me a workflow report"
 - "Run analytics"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ### Patient prioritisation
@@ -27,6 +35,7 @@ Scores every active patient by clinical urgency (overdue collection, adherence r
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/analytics/prioritize-patients
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ### Anomaly detection
@@ -35,6 +44,7 @@ Identifies unusual patterns across stock demand, patient collections, and audit 
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/analytics/anomalies
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ### Workflow optimisation
@@ -43,6 +53,7 @@ Analyses recent audit history and patient load to generate workflow improvement 
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/analytics/workflow
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ### Workload preview (no AI call)
@@ -51,6 +62,7 @@ Returns prescription counts due per day for the next N days — useful for staff
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/analytics/workload?days=7
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ## Output

@@ -17,16 +17,28 @@ Use this skill to send proactive refill reminders to patients, or to check who n
 - "Run the engagement campaign"
 - "Send SMS reminders to patients"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=refill_reminder
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 Other campaign types:
 ```
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=adherence_check
+X-API-Key: $PHARMAGENT_API_KEY
+
 GET https://web-production-1f27a.up.railway.app/agents/engagement-campaign?campaign_type=seasonal
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 **Parameters:**

@@ -16,10 +16,19 @@ Use this skill at the end of a shift to generate a structured handover note for 
 - "What does the next shift need to know?"
 - "Handover briefing"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/handover
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 No parameters required.

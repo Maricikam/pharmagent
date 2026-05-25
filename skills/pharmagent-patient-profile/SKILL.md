@@ -16,18 +16,28 @@ Use this skill to look up what a patient is currently prescribed, without runnin
 - "What's Thomas Robertson's prescription list?"
 - "Pull up the profile for patient Robertson"
 
+## Authentication
+
+Every request must include the API key header — without it the server returns 401:
+
+```
+X-API-Key: $PHARMAGENT_API_KEY
+```
+
 ## How to use
 
 ### By CHI number
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/patient-profile?nhs_number=1203480016
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 ### By patient name
 
 ```
 GET https://web-production-1f27a.up.railway.app/agents/patient-profile?name=Margaret%20Campbell
+X-API-Key: $PHARMAGENT_API_KEY
 ```
 
 **Parameters:**
