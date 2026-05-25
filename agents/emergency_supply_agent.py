@@ -124,7 +124,7 @@ def process_emergency_supply(
                 _prescriptions=prescriptions,
             )
             # Extract the key recommendation lines for the supply record
-            lines = full_result.split("\n")
+            lines = full_result["text"].split("\n")
             key_lines = [
                 l.strip() for l in lines
                 if any(k in l.upper() for k in

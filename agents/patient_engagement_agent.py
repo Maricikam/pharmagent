@@ -301,10 +301,6 @@ def run_engagement_campaign(days_ahead: int = 7, channel: str = "sms",
         prescriptions = get_active_prescriptions(pid)
         generic_names = [rx.get("generic_name", "") for rx in prescriptions]
 
-        dob_str = None
-        for rx in prescriptions:
-            break
-
         # Derive age from patient DOB via a quick DB lookup through tools
         age = 60  # safe default if DOB unavailable
         try:

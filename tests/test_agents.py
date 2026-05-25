@@ -127,7 +127,7 @@ class TestToolLayer:
     def test_send_patient_message(self):
         from tools.pharmacy_tools import send_patient_message
         result = send_patient_message(1, "sms", "Hello Test, your prescription is due.")
-        assert result["status"] == "sent"
+        assert result["status"] == "generated"
         assert result["channel"] == "sms"
 
     def test_send_message_unknown_patient(self):
@@ -164,14 +164,16 @@ class TestInteractionSafetyAgent:
     )
 
     @patch("anthropic.Anthropic")
-    def test_returns_string(self, mock_anthropic):
+    def test_returns_dict(self, mock_anthropic):
         mock_anthropic.return_value.messages.create.return_value = MagicMock(
             content=[MagicMock(text=self._MOCK_REPORT)]
         )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("1234567890")
-        assert isinstance(result, str)
-        assert len(result) > 10
+        assert isinstance(result, dict)
+        assert "text" in result
+        assert "risk_level" in result
+        assert len(result["text"]) > 10
 
     @patch("anthropic.Anthropic")
     def test_patient_not_found(self, mock_anthropic):
@@ -180,7 +182,7 @@ class TestInteractionSafetyAgent:
         )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("0000000000")
-        assert "No patient found" in result or "error" in result.lower()
+        assert "error" in result or "No patient found" in result.get("text", "")
 
     @patch("anthropic.Anthropic")
     def test_contains_medication_names(self, mock_anthropic):
@@ -189,7 +191,7 @@ class TestInteractionSafetyAgent:
         )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("1234567890")
-        assert any(m in result.lower() for m in ["warfarin", "aspirin"])
+        assert any(m in result["text"].lower() for m in ["warfarin", "aspirin"])
 
     @patch("anthropic.Anthropic")
     def test_high_risk_detected(self, mock_anthropic):
@@ -198,7 +200,7 @@ class TestInteractionSafetyAgent:
         )
         from agents.interaction_safety_agent import check_interactions
         result = check_interactions("1234567890", "Ibuprofen")
-        assert "HIGH" in result or "DO NOT" in result
+        assert result["risk_level"] == "HIGH" or "DO NOT" in result["text"]
 
 
 class TestStockIntelligenceAgent:

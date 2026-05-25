@@ -92,19 +92,16 @@ def get_patients_due_refill(days_ahead: int = 7) -> list[dict]:
                        Prescription.next_due_date >= today)
                .all())
         result = []
-        seen = set()
         for rx in rxs:
-            if rx.patient_id not in seen:
-                seen.add(rx.patient_id)
-                result.append({
-                    "patient_id": rx.patient_id,
-                    "nhs_number": rx.patient.nhs_number,
-                    "name": f"{rx.patient.first_name} {rx.patient.last_name}",
-                    "phone": rx.patient.phone,
-                    "email": rx.patient.email,
-                    "next_due_date": rx.next_due_date,
-                    "medication": rx.medication.name,
-                })
+            result.append({
+                "patient_id": rx.patient_id,
+                "nhs_number": rx.patient.nhs_number,
+                "name": f"{rx.patient.first_name} {rx.patient.last_name}",
+                "phone": rx.patient.phone,
+                "email": rx.patient.email,
+                "next_due_date": rx.next_due_date,
+                "medication": rx.medication.name,
+            })
         return result
     finally:
         db.close()
