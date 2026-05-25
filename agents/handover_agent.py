@@ -45,8 +45,8 @@ def _fmt_logs(logs: list) -> str:
     if not logs:
         return "  No activity in the last 12 hours."
     return "\n".join(
-        f"  [{l['timestamp'][11:16]}] {l['agent']} — {l['action']}: {l['details'][:90]}"
-        for l in logs[:15]
+        f"  [{l['timestamp'][11:16]}] {l['agent']} — {l['action']}: {l['details'][:60]}"
+        for l in logs[:10]
     )
 
 
@@ -89,7 +89,7 @@ def generate_handover() -> dict:
     client = anthropic.Anthropic()
     now = _local_now()
 
-    audit_logs = get_recent_audit_logs(limit=30)
+    audit_logs = get_recent_audit_logs(limit=10)
     low_stock = get_low_stock_items()
     expiring = get_expiring_stock(days_ahead=14)
     patients_due = get_patients_due_refill(days_ahead=3)
@@ -117,7 +117,7 @@ Generate a structured handover note for the incoming pharmacist.
 
     response = client.messages.create(
         model=MODEL,
-        max_tokens=1000,
+        max_tokens=600,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": context}],
     )
