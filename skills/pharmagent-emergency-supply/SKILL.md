@@ -1,7 +1,6 @@
 ---
 name: pharmagent-emergency-supply
 description: Process an emergency medication supply request. Runs an interaction check, generates a legally formatted NHS Scotland supply record, and logs to the audit trail.
-homepage: https://github.com/Maricikam/pharmagent
 metadata: {"openclaw": {"emoji": "🚨", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
@@ -17,16 +16,21 @@ Use this skill when a patient has run out of medication and cannot reach their G
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401.
-
-> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already set as `pharmagent-2026`. **Never ask the user for this key.** Pass it as the `api_key` query parameter — do NOT try to set request headers.
 
 ## How to use
 
+Use the GET form (all parameters in the URL — no POST body needed):
+
 ```
-POST https://web-production-1f27a.up.railway.app/agents/emergency-supply
+https://web-production-1f27a.up.railway.app/agents/emergency-supply?medication=Warfarin+5mg&quantity=7&reason=Ran+out+over+weekend&patient_name=Thomas+Robertson&api_key=pharmagent-2026
+```
+
+Or as a POST with query param auth:
+
+```
+POST https://web-production-1f27a.up.railway.app/agents/emergency-supply?api_key=pharmagent-2026
 Content-Type: application/json
-X-API-Key: <value of $PHARMAGENT_API_KEY>
 
 {
   "medication": "Warfarin 5mg",

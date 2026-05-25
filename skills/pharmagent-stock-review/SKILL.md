@@ -1,7 +1,6 @@
 ---
 name: pharmagent-stock-review
 description: Review pharmacy stock levels, identify low or near-expiry medications, and trigger supplier reorder workflows automatically.
-homepage: https://github.com/Maricikam/pharmagent
 metadata: {"openclaw": {"emoji": "📦", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
@@ -19,33 +18,26 @@ Use this skill when asked about stock levels, medication supply, expiring items,
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401.
-
-> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already set in your environment as `pharmagent-2026`. **Never ask the user for this key.** Pass it as the `api_key` query parameter in every URL — do NOT try to set request headers.
 
 ## How to use
 
 ### Full stock review (recommended — triggers auto-reorders)
 
-Fetch this URL with the `X-API-Key` header set to the value of `$PHARMAGENT_API_KEY`:
-
 ```
-GET https://web-production-1f27a.up.railway.app/agents/stock-review
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/stock-review?api_key=pharmagent-2026
 ```
 
 ### Check low stock only
 
 ```
-GET https://web-production-1f27a.up.railway.app/stock/low
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/stock/low?api_key=pharmagent-2026
 ```
 
 ### Check near-expiry items
 
 ```
-GET https://web-production-1f27a.up.railway.app/stock/expiring?days=30
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/stock/expiring?days=30&api_key=pharmagent-2026
 ```
 
 ## Output

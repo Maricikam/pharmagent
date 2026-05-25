@@ -9,7 +9,7 @@ import string
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends, Security, Request
+from fastapi import FastAPI, HTTPException, Depends, Security, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
@@ -64,10 +64,14 @@ app.add_middleware(
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-def require_api_key(api_key: str = Security(_api_key_header)):
+def require_api_key(
+    api_key_header: str = Security(_api_key_header),
+    api_key_query: str = Query(default=None, alias="api_key"),
+):
+    key = api_key_header or api_key_query
     expected = os.getenv("API_KEY", "").strip()
-    if expected and api_key != expected:
-        raise HTTPException(status_code=401, detail="Invalid or missing API key. Provide it via the X-API-Key header.")
+    if expected and key != expected:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key. Provide via X-API-Key header or ?api_key= query parameter.")
 
 
 def _ref() -> str:

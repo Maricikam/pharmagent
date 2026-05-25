@@ -1,7 +1,6 @@
 ---
 name: pharmagent-handover
 description: Generate a shift handover briefing for the incoming pharmacist. Combines recent audit activity, stock alerts, and urgent patient refills into a structured NHS clinical handover note.
-homepage: https://github.com/Maricikam/pharmagent
 metadata: {"openclaw": {"emoji": "📋", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
@@ -18,15 +17,12 @@ Use this skill at the end of a shift to generate a structured handover note for 
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401.
-
-> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already set as `pharmagent-2026`. **Never ask the user for this key.** Pass it as the `api_key` query parameter in the URL — do NOT try to set request headers.
 
 ## How to use
 
 ```
-GET https://web-production-1f27a.up.railway.app/agents/handover
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/handover?api_key=pharmagent-2026
 ```
 
 No parameters required.

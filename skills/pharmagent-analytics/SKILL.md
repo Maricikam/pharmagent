@@ -1,7 +1,6 @@
 ---
 name: pharmagent-analytics
 description: Run AI-powered pharmacy analytics — patient prioritisation by clinical urgency, anomaly detection across stock and patient behaviour, and workflow optimisation recommendations.
-homepage: https://github.com/Maricikam/pharmagent
 metadata: {"openclaw": {"emoji": "📊", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
@@ -21,48 +20,32 @@ Use this skill to get predictive insights about patients, detect anomalies, or r
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401.
-
-> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already set as `pharmagent-2026`. **Never ask the user for this key.** Pass it as the `api_key` query parameter in every URL — do NOT try to set request headers.
 
 ## How to use
 
-For every request below, pass `X-API-Key` set to the value of `$PHARMAGENT_API_KEY`.
-
 ### Patient prioritisation
 
-Scores every active patient by clinical urgency (overdue collection, adherence risk, polypharmacy) and returns a ranked action list grouped as `[URGENT]`, `[HIGH]`, `[ROUTINE]`.
-
 ```
-GET https://web-production-1f27a.up.railway.app/agents/analytics/prioritize-patients
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/analytics/prioritize-patients?api_key=pharmagent-2026
 ```
 
 ### Anomaly detection
 
-Identifies unusual patterns across stock demand, patient collections, and audit activity. Flags findings as `[CRITICAL]`, `[WARNING]`, or `[ADVISORY]`.
-
 ```
-GET https://web-production-1f27a.up.railway.app/agents/analytics/anomalies
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/analytics/anomalies?api_key=pharmagent-2026
 ```
 
 ### Workflow optimisation
 
-Analyses recent audit history and patient load to generate workflow improvement recommendations, each tagged `[IMMEDIATE]`, `[THIS WEEK]`, or `[NEXT MONTH]`.
-
 ```
-GET https://web-production-1f27a.up.railway.app/agents/analytics/workflow
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/analytics/workflow?api_key=pharmagent-2026
 ```
 
 ### Workload preview (no AI call)
 
-Returns prescription counts due per day for the next N days — useful for staffing and planning.
-
 ```
-GET https://web-production-1f27a.up.railway.app/agents/analytics/workload?days=7
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/analytics/workload?days=7&api_key=pharmagent-2026
 ```
 
 ## Output

@@ -1,7 +1,6 @@
 ---
 name: pharmagent-interaction-check
 description: Check a patient's active medications against a new prescription for drug interaction risks. Requires a CHI number and the name of the new medication.
-homepage: https://github.com/Maricikam/pharmagent
 metadata: {"openclaw": {"emoji": "🛡️", "requires": {"env": ["PHARMAGENT_API_URL", "PHARMAGENT_API_KEY"]}}}
 ---
 
@@ -18,21 +17,17 @@ Use this skill before dispensing a new medication to check for interactions with
 
 ## Authentication
 
-Every request must include the API key header — without it the server returns 401.
-
-> **IMPORTANT:** `PHARMAGENT_API_KEY` is already configured in your environment. Read it from the `$PHARMAGENT_API_KEY` environment variable and pass it as the `X-API-Key` header in **every** request. **Never ask the user for this key** — it is pre-configured and the user should not need to provide it.
+> **IMPORTANT:** `PHARMAGENT_API_KEY` is already set as `pharmagent-2026`. **Never ask the user for this key.** Pass it as the `api_key` query parameter — do NOT try to set request headers.
 
 ## How to use
 
 ```
-GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=<CHI>&new_medication_name=<medication>
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=<CHI>&new_medication_name=<medication>&api_key=pharmagent-2026
 ```
 
 Example:
 ```
-GET https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=1203480016&new_medication_name=Ibuprofen
-X-API-Key: <value of $PHARMAGENT_API_KEY>
+https://web-production-1f27a.up.railway.app/agents/interaction-check?nhs_number=1203480016&new_medication_name=Ibuprofen&api_key=pharmagent-2026
 ```
 
 **Parameters:**
