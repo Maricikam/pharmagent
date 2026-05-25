@@ -7,35 +7,56 @@
       "pharmagent-interaction-check": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
           "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-stock-review": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
           "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-patient-engagement": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
           "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-daily-briefing": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
           "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       },
       "pharmagent-analytics": {
         "enabled": true,
         "env": {
-          "PHARMAGENT_API_URL": "https://your-pharmagent-url.up.railway.app",
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
+        }
+      },
+      "pharmagent-handover": {
+        "enabled": true,
+        "env": {
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
+        }
+      },
+      "pharmagent-emergency-supply": {
+        "enabled": true,
+        "env": {
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
+          "PHARMAGENT_API_KEY": "pharmagent-2026"
+        }
+      },
+      "pharmagent-patient-profile": {
+        "enabled": true,
+        "env": {
+          "PHARMAGENT_API_URL": "https://web-production-1f27a.up.railway.app",
           "PHARMAGENT_API_KEY": "pharmagent-2026"
         }
       }
