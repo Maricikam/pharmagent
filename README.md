@@ -26,6 +26,13 @@ PharmAgent AI is a multi-agent system that helps pharmacists check drug interact
 | **API docs** | [web-production-1f27a.up.railway.app/docs](https://web-production-1f27a.up.railway.app/docs) |
 | **Health check** | [web-production-1f27a.up.railway.app/health](https://web-production-1f27a.up.railway.app/health) |
 
+### Demo videos
+
+| | |
+|---|---|
+| **Dashboard walkthrough** | [▶ Watch](demos/Dashboard%20-%20demo.mp4) |
+| **WhatsApp integration** | [▶ Watch](demos/WhatsApp%20-%20demo.mp4) |
+
 ### WhatsApp demo (via OpenClaw)
 
 > *"Check patient 1203480016 for Ibuprofen"*
@@ -118,7 +125,7 @@ See [OPENCLAW.md](OPENCLAW.md) for full setup instructions.
 
 ## Security
 
-API endpoints are protected by an `X-API-Key` header check. Set `API_KEY` as an environment variable on Railway to enable enforcement. The dashboard sends the key automatically on every request — judges and users do not need to enter anything.
+API endpoints support optional key-based access control via `X-API-Key` header or `?api_key=` query parameter. Set `API_KEY` as an environment variable on Railway to enable enforcement; leave it unset for open access (demo mode).
 
 CHI numbers are validated against the Modulus 11 algorithm before any patient query reaches the database.
 
