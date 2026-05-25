@@ -20,6 +20,7 @@ Write in NHS clinical handover style — structured, factual, scannable. No emoj
 Use plain section headers underlined with dashes.
 Use 24-hour time (e.g. 14:30) and DD/MM/YYYY dates.
 Prioritise: anything requiring immediate action goes first.
+Do NOT use markdown pipe tables. Use bullet lists for all patient and data rows.
 
 Sections to include:
 1. Handover Summary — 2-3 sentences, overall pharmacy status for this shift

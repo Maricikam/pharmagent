@@ -233,7 +233,7 @@ Respond in clean markdown using these sections:
 [numbered list]
 ---
 ## INTERACTION ANALYSIS
-[table: Drug Pair | Severity | Clinical Rationale]
+[bullet list — for each interaction: drug pair, severity level, clinical rationale]
 ---
 ## CLINICAL CONTEXT
 [2-3 bullet points of relevant clinical context e.g. age, renal function concerns, indication for combination]
