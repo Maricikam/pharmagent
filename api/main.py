@@ -2,6 +2,7 @@
 api/main.py — PharmAgent AI FastAPI application.
 """
 
+import asyncio
 import os
 import re
 import random
@@ -37,8 +38,16 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
 
+async def _daily_refresh():
+    """Keep prescription due dates current so the demo never goes stale."""
+    while True:
+        await asyncio.sleep(24 * 60 * 60)
+        from scripts.seed import refresh_due_dates
+        refresh_due_dates()
+
+
 @app.on_event("startup")
-def startup():
+async def startup():
     from db.database import init_db
     from tools.pharmacy_tools import get_patient_by_nhs
     from scripts.seed import refresh_due_dates
@@ -48,6 +57,7 @@ def startup():
         seed()
     else:
         refresh_due_dates()
+    asyncio.create_task(_daily_refresh())
 
 
 app.state.limiter = limiter
